@@ -1,0 +1,212 @@
+{
+  "hero": {
+    "name": "Your Full Name",
+    "roles": [
+      "Full Stack Developer",
+      "UI/UX Designer",
+      "Creative Technologist"
+    ],
+    "intro": "A brief introduction about yourself, your passion, and what you do. Keep it engaging and around 2-3 sentences.",
+    "profileImage": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    "cvUrl": "/assets/cv.pdf"
+  },
+  "about": {
+    "heading": "About Me",
+    "paragraph": "First paragraph about your background and experience. Tell your story.\n\nSecond paragraph about your interests, hobbies, or philosophy. Use \\n\\n to separate paragraphs.",
+    "image": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&h=800&fit=crop"
+  },
+  "qualifications": [
+    {
+      "id": "qual-1",
+      "title": "Master of Computer Science",
+      "institution": "University Name",
+      "startDate": "2018-09",
+      "endDate": "2020-06",
+      "description": "Brief description of your studies, specialization, thesis, or achievements during this qualification."
+    },
+    {
+      "id": "qual-2",
+      "title": "Bachelor of Software Engineering",
+      "institution": "University Name",
+      "startDate": "2014-09",
+      "endDate": "2018-06",
+      "description": "Description of your undergraduate studies and notable accomplishments."
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "label": "React & Next.js",
+      "level": 95,
+      "category": "Frontend"
+    },
+    {
+      "id": "skill-2",
+      "label": "Node.js & Express",
+      "level": 88,
+      "category": "Backend"
+    },
+    {
+      "id": "skill-3",
+      "label": "MongoDB & PostgreSQL",
+      "level": 85,
+      "category": "Backend"
+    },
+    {
+      "id": "skill-4",
+      "label": "AWS & Docker",
+      "level": 80,
+      "category": "DevOps"
+    },
+    {
+      "id": "skill-5",
+      "label": "Figma & Design Systems",
+      "level": 87,
+      "category": "Design"
+    }
+  ],
+  "experience": [
+    {
+      "id": "exp-1",
+      "company": "Company Name Inc.",
+      "role": "Senior Full Stack Developer",
+      "startDate": "2021-03",
+      "endDate": null,
+      "current": true,
+      "bullets": [
+        "Achievement or responsibility with measurable impact (e.g., Led development serving 2M+ users)",
+        "Another key achievement (e.g., Reduced load times by 60%)",
+        "Team leadership or mentorship accomplishment",
+        "Technical contribution or innovation"
+      ]
+    },
+    {
+      "id": "exp-2",
+      "company": "Previous Company",
+      "role": "Full Stack Developer",
+      "startDate": "2020-07",
+      "endDate": "2021-02",
+      "current": false,
+      "bullets": [
+        "Key project or achievement",
+        "Technical implementation detail",
+        "Collaboration or team contribution"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "title": "Project Name",
+      "description": "Brief description of the project, what it does, and its impact. 1-2 sentences.",
+      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=400&fit=crop",
+      "tags": [
+        "React",
+        "Node.js",
+        "MongoDB",
+        "Tailwind"
+      ],
+      "links": {
+        "live": "https://project-demo.com",
+        "github": "https://github.com/username/repo"
+      }
+    },
+    {
+      "id": "proj-2",
+      "title": "Another Project",
+      "description": "Description of second project highlighting key features and technologies.",
+      "image": "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=600&h=400&fit=crop",
+      "tags": [
+        "Next.js",
+        "PostgreSQL",
+        "TypeScript"
+      ],
+      "links": {
+        "live": "https://example.com",
+        "github": "https://github.com/username/repo"
+      }
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "test-1",
+      "name": "Client or Colleague Name",
+      "role": "Their Job Title",
+      "company": "Company Name",
+      "content": "The testimonial quote praising your work, skills, or collaboration. Should be 2-3 sentences highlighting specific strengths.",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+    },
+    {
+      "id": "test-2",
+      "name": "Another Person",
+      "role": "CTO",
+      "company": "Tech Company",
+      "content": "Another positive testimonial focusing on different aspects of your work or personality.",
+      "avatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop"
+    }
+  ],
+  "contact": {
+    "email": "your.email@example.com",
+    "phone": "+1 (555) 123-4567",
+    "location": "City, State/Country"
+  },
+  "social": {
+    "github": "https://github.com/yourusername",
+    "linkedin": "https://linkedin.com/in/yourusername",
+    "twitter": "https://twitter.com/yourusername",
+    "portfolio": "https://yourwebsite.com"
+  },
+  "theme": {
+    "primary": "oklch(0.55 0.25 262)",
+    "secondary": "oklch(0.65 0.20 220)",
+    "accent": "oklch(0.75 0.18 160)",
+    "bg": "oklch(0.98 0.01 260)",
+    "surface": "oklch(1.0 0 0)",
+    "text": "oklch(0.25 0.02 260)"
+  },
+  "customSections": [
+    {
+      "id": "section-1",
+      "name": "Certifications",
+      "fields": [
+        {
+          "id": "field-1",
+          "label": "Certificate Name",
+          "name": "name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "field-2",
+          "label": "Issuing Organization",
+          "name": "organization",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "field-3",
+          "label": "Date Obtained",
+          "name": "date",
+          "type": "date",
+          "required": false
+        },
+        {
+          "id": "field-4",
+          "label": "Certificate URL",
+          "name": "url",
+          "type": "text",
+          "required": false
+        }
+      ],
+      "entries": [
+        {
+          "id": "entry-1",
+          "name": "AWS Certified Solutions Architect",
+          "organization": "Amazon Web Services",
+          "date": "2023-06-15",
+          "url": "https://aws.amazon.com/certification/"
+        }
+      ]
+    }
+  ]
+}
