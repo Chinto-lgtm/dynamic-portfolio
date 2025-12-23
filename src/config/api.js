@@ -1,6 +1,6 @@
 // API Configuration
 // Set USE_BACKEND to true when your MongoDB backend is ready
-export const USE_BACKEND = false; // Change to true to use MongoDB backend
+export const USE_BACKEND = true; // Change to true to use MongoDB backend
 
 // Backend API URL - update this with your MongoDB backend URL
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
