@@ -18,8 +18,8 @@ export const Testimonials = () => {
         </div>
 
         <div className="row g-4">
-          {testimonials.map((testimonial) => (
-            <div key={testimonial.id} className="col-lg-4">
+          {testimonials.map((testimonial,index) => (
+            <div key={testimonial._id || index } className="col-lg-4">
               <Card padding="lg" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <div style={{
                   width: '40px',

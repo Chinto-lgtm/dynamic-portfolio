@@ -81,8 +81,8 @@ export const Skills = () => {
             <div key={category} className="col-lg-6">
               <Card padding="lg">
                 <h4 className="mb-4">{category}</h4>
-                {categorySkills.map((skill) => (
-                  <SkillBar key={skill.id} skill={skill} inView={inView} />
+                {categorySkills.map((skill,index) => (
+                  <SkillBar key={skill._id || index} skill={skill} inView={inView} />
                 ))}
               </Card>
             </div>

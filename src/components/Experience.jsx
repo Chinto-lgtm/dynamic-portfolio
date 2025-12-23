@@ -28,7 +28,7 @@ export const Experience = () => {
           <div className="col-lg-8">
             <div className="timeline">
               {experience.map((exp, index) => (
-                <div key={exp.id} className="timeline-item">
+                <div key={exp._id || index } className="timeline-item">
                   <div className="card card-padding-lg">
                     <div className="d-flex align-items-start gap-3 mb-3">
                       <div style={{

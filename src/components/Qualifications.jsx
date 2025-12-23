@@ -27,7 +27,7 @@ export const Qualifications = () => {
           <div className="col-lg-8">
             <div className="timeline">
               {qualifications.map((qual, index) => (
-                <div key={qual.id} className="timeline-item">
+                <div key={qual._id || index} className="timeline-item">
                   <div className="card card-padding-lg">
                     <div className="d-flex align-items-start gap-3 mb-3">
                       <div style={{

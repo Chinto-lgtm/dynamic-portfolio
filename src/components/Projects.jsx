@@ -20,8 +20,8 @@ export const Projects = () => {
         </div>
 
         <div className="row g-4">
-          {projects.map((project) => (
-            <div key={project.id} className="col-lg-6">
+          {projects.map((project,index) => (
+            <div key={project._id || index} className="col-lg-6">
               <Card hover padding="md" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 {/* Project Image */}
                 <div style={{ 
