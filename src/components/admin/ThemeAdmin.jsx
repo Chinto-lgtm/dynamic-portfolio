@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, RotateCcw } from 'lucide-react';
 import { Card } from '../Card';
 import { Input } from '../Input';
@@ -9,8 +9,8 @@ import { usePortfolio } from '../../hooks/usePortfolio';
 export const ThemeAdmin = () => {
   const { data, updateTheme } = usePortfolio();
   const toast = useToast();
-  const [theme, setTheme] = useState(data.theme);
 
+  // 1. Define Defaults (The Safety Net)
   const defaultTheme = {
     primary: "oklch(0.55 0.25 262)",
     secondary: "oklch(0.65 0.20 220)",
@@ -19,6 +19,17 @@ export const ThemeAdmin = () => {
     surface: "oklch(1.0 0 0)",
     text: "oklch(0.25 0.02 260)"
   };
+
+  // 2. Initialize State Safely
+  // If data.theme is missing, use defaultTheme immediately to prevent crash
+  const [theme, setTheme] = useState(data?.theme || defaultTheme);
+
+  // 3. Sync with Database when data loads
+  useEffect(() => {
+    if (data && data.theme) {
+      setTheme(data.theme);
+    }
+  }, [data]);
 
   const handleChange = (key, value) => {
     setTheme(prev => ({ ...prev, [key]: value }));
@@ -53,6 +64,9 @@ export const ThemeAdmin = () => {
     { key: 'surface', label: 'Surface Color', description: 'Card and component backgrounds' },
     { key: 'text', label: 'Text Color', description: 'Primary text color' }
   ];
+
+  // 4. Loading State (Optional, prevents flickering)
+  if (!theme) return <div>Loading Theme...</div>;
 
   return (
     <div>
@@ -90,7 +104,7 @@ export const ThemeAdmin = () => {
                     {color.description}
                   </p>
                   <Input
-                    value={theme[color.key]}
+                    value={theme[color.key] || ''} 
                     onChange={(e) => handleChange(color.key, e.target.value)}
                     placeholder={`theme.${color.key}`}
                     className="font-mono text-sm"

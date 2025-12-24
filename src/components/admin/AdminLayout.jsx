@@ -87,7 +87,7 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
                   className={`
                     w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left
                     ${isActive 
-                      ? 'bg-[var(--color-primary)] text-white' 
+                      ? 'bg-[var(--color-primary)] text-black' 
                       : 'text-[var(--color-text)] hover:bg-[var(--color-bg)]'
                     }
                   `}
