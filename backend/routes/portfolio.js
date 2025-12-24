@@ -29,7 +29,7 @@ router.post('/contact', async (req, res) => {
       auth: {
         // ⚠️ REPLACE THESE WITH YOUR REAL DETAILS ⚠️
         user: 'ahmadsaith145@gmail.com', 
-        pass: 'euhb eeoj rywn rusm' // Your 16-char App Password
+        pass: 'rteu swbd mdsq qlzf' // Your 16-char App Password
       }
     });
 
