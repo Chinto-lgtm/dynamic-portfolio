@@ -1,11 +1,14 @@
 const express = require('express');
 const Portfolio = require('../models/Portfolio');
 const auth = require('../middleware/auth');
+const nodemailer = require('nodemailer'); // Import Nodemailer
 const router = express.Router();
 
 // =================================================================
-// 1. PUBLIC ROUTE (Get All Data)
+// 1. PUBLIC ROUTES (Get Data & Send Email)
 // =================================================================
+
+// Get All Data
 router.get('/', async (req, res) => {
   try {
     const portfolio = await Portfolio.findOne();
@@ -15,8 +18,50 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ✅ CONTACT FORM (SEND EMAIL)
+router.post('/contact', async (req, res) => {
+  const { name, email, message } = req.body;
+
+  try {
+    // 1. Configure the Email Transporter
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        // ⚠️ REPLACE THESE WITH YOUR REAL DETAILS ⚠️
+        user: 'your.real.email@gmail.com', 
+        pass: 'xxxx xxxx xxxx xxxx' // Your 16-char App Password
+      }
+    });
+
+    // 2. Set up email data
+    const mailOptions = {
+      from: email, // Sender address
+      to: 'your.real.email@gmail.com', // ⚠️ YOUR EMAIL (Where you receive it)
+      subject: `Portfolio Message from ${name}`,
+      text: `
+        Name: ${name}
+        Email: ${email}
+        
+        Message:
+        ${message}
+      `
+    };
+
+    // 3. Send email
+    await transporter.sendMail(mailOptions);
+
+    console.log(`✅ Email sent from ${name}`);
+    res.json({ success: true, message: "Email sent successfully!" });
+
+  } catch (error) {
+    console.error("❌ Email Error:", error);
+    res.status(500).json({ error: "Failed to send email. Check backend logs." });
+  }
+});
+
+
 // =================================================================
-// 2. SINGLE SECTIONS (Hero, About, Contact, Social, Theme)
+// 2. SINGLE SECTIONS (Hero, About, Contact Info, Social, Theme)
 // =================================================================
 
 // Helper for Single Sections
@@ -35,7 +80,7 @@ const updateSingle = async (req, res, field) => {
 
 router.put('/hero', auth, (req, res) => updateSingle(req, res, 'hero'));
 router.put('/about', auth, (req, res) => updateSingle(req, res, 'about'));
-router.put('/contact', auth, (req, res) => updateSingle(req, res, 'contact'));
+router.put('/contact', auth, (req, res) => updateSingle(req, res, 'contact')); // Updates your address/phone info
 router.put('/social', auth, (req, res) => updateSingle(req, res, 'social'));
 router.put('/theme', auth, (req, res) => updateSingle(req, res, 'theme'));
 
@@ -51,7 +96,7 @@ const addItem = async (req, res, field) => {
       { $push: { [field]: req.body }, $set: { updatedAt: Date.now() } },
       { new: true, upsert: true }
     );
-    // Return the last item added (which is now at the end of the array)
+    // Return the last item added
     const newArray = portfolio[field];
     res.json(newArray[newArray.length - 1]);
   } catch (error) {
@@ -67,7 +112,7 @@ router.post('/testimonials', auth, (req, res) => addItem(req, res, 'testimonials
 
 
 // =================================================================
-// 4. DELETE & UPDATE ROUTES (FIXED)
+// 4. DELETE & UPDATE ROUTES (FIXED & WORKING)
 // =================================================================
 
 // --- DELETE HELPER ---
@@ -75,39 +120,38 @@ const deleteItem = async (req, res, field) => {
   try {
     const portfolio = await Portfolio.findOneAndUpdate(
       { userId: req.userId },
-      { $pull: { [field]: { _id: req.params.id } } }, // Remove item with matching _id
+      { $pull: { [field]: { _id: req.params.id } } }, // Remove item by _id
       { new: true }
     );
     
     if (!portfolio) return res.status(404).json({ error: "Portfolio not found" });
     
-    // Return success
     res.json({ success: true, message: "Item deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-// --- UPDATE HELPER (BUG FIXED HERE) ---
+// --- UPDATE HELPER ---
 const updateItem = async (req, res, field) => {
   try {
     const portfolio = await Portfolio.findOne({ userId: req.userId });
     if (!portfolio) return res.status(404).json({ error: "Portfolio not found" });
 
-    // 1. Find the specific item in the array
+    // 1. Find specific item
     const item = portfolio[field].id(req.params.id);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
-    // 2. SAFETY FIX: Remove _id from the update data so Mongoose doesn't crash
+    // 2. Remove _id from body to prevent immutable field error
     const { _id, ...updateData } = req.body;
 
-    // 3. Update the item
+    // 3. Update
     item.set(updateData);
     
     // 4. Save
     await portfolio.save();
     
-    // 5. Return ONLY the updated item (as an Object)
+    // 5. Return ONLY the updated item
     res.json(item); 
   } catch (error) {
     console.error("Update Error:", error);

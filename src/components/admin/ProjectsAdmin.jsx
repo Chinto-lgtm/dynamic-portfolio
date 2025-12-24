@@ -108,7 +108,7 @@ export const ProjectsAdmin = () => {
               <img
                 src={project.image}
                 alt={project.title}
-                className="w-full h-full object-cover"
+                className="w-1/2 h-auto object-cover"
                 onError={(e) => {
                   e.target.src = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&h=400&fit=crop';
                 }}

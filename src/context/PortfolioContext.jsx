@@ -5,11 +5,17 @@ export const PortfolioContext = createContext();
 export const PortfolioProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Error State for Mobile/Network issues
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // CONFIG: Your Backend URL
-  const API_URL = "http://localhost:5000/api/portfolio";
-  const AUTH_URL = "http://localhost:5000/api/auth";
+  // ============================================================
+  // CONFIGURATION: NETWORK SETTINGS
+  // ============================================================
+  // Using PC IP so mobile devices can connect.
+  const BASE_URL = "http://192.168.100.12:5000"; 
+  
+  const API_URL = `${BASE_URL}/api/portfolio`;
+  const AUTH_URL = `${BASE_URL}/api/auth`;
 
   // ============================================================
   // 1. INITIALIZATION
@@ -22,12 +28,30 @@ export const PortfolioProvider = ({ children }) => {
 
   const fetchData = async () => {
     try {
+      setLoading(true);
+      setError(null);
+
+      // 1. Attempt to fetch
       const res = await fetch(API_URL);
+      
+      // 2. Check for Server Errors
+      if (!res.ok) {
+        throw new Error(`Server Error: ${res.status} ${res.statusText}`);
+      }
+
       const dbData = await res.json();
+      
+      // 3. Safety Check: Ensure data is not null/empty
+      if (!dbData || Object.keys(dbData).length === 0) {
+        throw new Error("Received empty data from server");
+      }
+
       setData(dbData);
       setLoading(false);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+      // Set error to show the "Retry" screen
+      setError(err.message);
       setLoading(false);
     }
   };
@@ -59,8 +83,29 @@ export const PortfolioProvider = ({ children }) => {
       return await res.json();
     } catch (error) {
       console.error(`Action failed [${method} ${endpoint}]:`, error);
-      // alert("Operation failed. Check console."); 
+      alert("Operation failed. Check console."); 
       return null;
+    }
+  };
+
+  // ✅ NEW FUNCTION: Send Contact Form (Public)
+  const submitContactForm = async (formData) => {
+    try {
+      const res = await fetch(`${API_URL}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to send message");
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error("Contact form failed:", error);
+      throw error; // Re-throw so the UI can show an error toast
     }
   };
 
@@ -99,182 +144,96 @@ export const PortfolioProvider = ({ children }) => {
   // 4. DATA UPDATES
   // ============================================================
 
-  // --- SINGLE SECTIONS ---
-  const updateHero = async (data) => {
-    const res = await apiCall('hero', 'PUT', data);
-    if (res) setData(prev => ({ ...prev, hero: res }));
-  };
-  const updateAbout = async (data) => {
-    const res = await apiCall('about', 'PUT', data);
-    if (res) setData(prev => ({ ...prev, about: res }));
-  };
-  const updateContact = async (data) => {
-    const res = await apiCall('contact', 'PUT', data);
-    if (res) setData(prev => ({ ...prev, contact: res }));
-  };
-  const updateSocial = async (data) => {
-    const res = await apiCall('social', 'PUT', data);
-    if (res) setData(prev => ({ ...prev, social: res }));
-  };
-  const updateTheme = async (data) => {
-    const res = await apiCall('theme', 'PUT', data);
-    if (res) setData(prev => ({ ...prev, theme: res }));
-  };
+  // Single Sections
+  const updateHero = async (d) => { const r = await apiCall('hero', 'PUT', d); if(r) setData(p=>({...p, hero: r})); };
+  const updateAbout = async (d) => { const r = await apiCall('about', 'PUT', d); if(r) setData(p=>({...p, about: r})); };
+  const updateContact = async (d) => { const r = await apiCall('contact', 'PUT', d); if(r) setData(p=>({...p, contact: r})); };
+  const updateSocial = async (d) => { const r = await apiCall('social', 'PUT', d); if(r) setData(p=>({...p, social: r})); };
+  const updateTheme = async (d) => { const r = await apiCall('theme', 'PUT', d); if(r) setData(p=>({...p, theme: r})); };
 
-  // --- ARRAYS: ADD NEW ITEMS ---
-  const addSkill = async (item) => {
-    const res = await apiCall('skills', 'POST', item);
-    if (res) setData(prev => ({ ...prev, skills: [...(prev.skills || []), res] }));
-  };
-  const addProject = async (item) => {
-    const res = await apiCall('projects', 'POST', item);
-    if (res) setData(prev => ({ ...prev, projects: [...(prev.projects || []), res] }));
-  };
-  const addExperience = async (item) => {
-    const res = await apiCall('experience', 'POST', item);
-    if (res) setData(prev => ({ ...prev, experience: [...(prev.experience || []), res] }));
-  };
-  const addQualification = async (item) => {
-    const res = await apiCall('qualifications', 'POST', item);
-    if (res) setData(prev => ({ ...prev, qualifications: [...(prev.qualifications || []), res] }));
-  };
-  const addTestimonial = async (item) => {
-    const res = await apiCall('testimonials', 'POST', item);
-    if (res) setData(prev => ({ ...prev, testimonials: [...(prev.testimonials || []), res] }));
-  };
+  // Add Items
+  const addSkill = async (i) => { const r = await apiCall('skills', 'POST', i); if(r) setData(p=>({...p, skills: [...(p.skills||[]), r]})); };
+  const addProject = async (i) => { const r = await apiCall('projects', 'POST', i); if(r) setData(p=>({...p, projects: [...(p.projects||[]), r]})); };
+  const addExperience = async (i) => { const r = await apiCall('experience', 'POST', i); if(r) setData(p=>({...p, experience: [...(p.experience||[]), r]})); };
+  const addQualification = async (i) => { const r = await apiCall('qualifications', 'POST', i); if(r) setData(p=>({...p, qualifications: [...(p.qualifications||[]), r]})); };
+  const addTestimonial = async (i) => { const r = await apiCall('testimonials', 'POST', i); if(r) setData(p=>({...p, testimonials: [...(p.testimonials||[]), r]})); };
 
-  // --- ARRAYS: UPDATE & DELETE (NOW FULLY CONNECTED) ---
+  // Update Items
+  const updateSkill = async (id, i) => { const r = await apiCall(`skills/${id}`, 'PUT', i); if(r) setData(p=>({...p, skills: p.skills.map(x=>(x._id===id || x.id===id)?r:x)})); };
+  const updateProject = async (id, i) => { const r = await apiCall(`projects/${id}`, 'PUT', i); if(r) setData(p=>({...p, projects: p.projects.map(x=>(x._id===id || x.id===id)?r:x)})); };
+  const updateExperience = async (id, i) => { const r = await apiCall(`experience/${id}`, 'PUT', i); if(r) setData(p=>({...p, experience: p.experience.map(x=>(x._id===id || x.id===id)?r:x)})); };
+  const updateQualification = async (id, i) => { const r = await apiCall(`qualifications/${id}`, 'PUT', i); if(r) setData(p=>({...p, qualifications: p.qualifications.map(x=>(x._id===id || x.id===id)?r:x)})); };
+  const updateTestimonial = async (id, i) => { const r = await apiCall(`testimonials/${id}`, 'PUT', i); if(r) setData(p=>({...p, testimonials: p.testimonials.map(x=>(x._id===id || x.id===id)?r:x)})); };
 
-  // 1. SKILLS
-  const updateSkill = async (id, updatedItem) => {
-    // We send only the data, apiCall handles the token
-    const res = await apiCall(`skills/${id}`, 'PUT', updatedItem);
-    if (res) {
-      // Backend returns the SINGLE updated item
-      setData(prev => ({
-        ...prev,
-        skills: prev.skills.map(item => (item._id === id || item.id === id) ? res : item)
-      }));
-    }
-  };
-  const deleteSkill = async (id) => {
-    const res = await apiCall(`skills/${id}`, 'DELETE');
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        skills: prev.skills.filter(item => item._id !== id && item.id !== id)
-      }));
-    }
-  };
+  // Delete Items
+  const deleteSkill = async (id) => { const r = await apiCall(`skills/${id}`, 'DELETE'); if(r) setData(p=>({...p, skills: p.skills.filter(x=>x._id!==id && x.id!==id)})); };
+  const deleteProject = async (id) => { const r = await apiCall(`projects/${id}`, 'DELETE'); if(r) setData(p=>({...p, projects: p.projects.filter(x=>x._id!==id && x.id!==id)})); };
+  const deleteExperience = async (id) => { const r = await apiCall(`experience/${id}`, 'DELETE'); if(r) setData(p=>({...p, experience: p.experience.filter(x=>x._id!==id && x.id!==id)})); };
+  const deleteQualification = async (id) => { const r = await apiCall(`qualifications/${id}`, 'DELETE'); if(r) setData(p=>({...p, qualifications: p.qualifications.filter(x=>x._id!==id && x.id!==id)})); };
+  const deleteTestimonial = async (id) => { const r = await apiCall(`testimonials/${id}`, 'DELETE'); if(r) setData(p=>({...p, testimonials: p.testimonials.filter(x=>x._id!==id && x.id!==id)})); };
 
-  // 2. PROJECTS
-  const updateProject = async (id, updatedItem) => {
-    const res = await apiCall(`projects/${id}`, 'PUT', updatedItem);
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        projects: prev.projects.map(item => (item._id === id || item.id === id) ? res : item)
-      }));
-    }
-  };
-  const deleteProject = async (id) => {
-    const res = await apiCall(`projects/${id}`, 'DELETE');
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        projects: prev.projects.filter(item => item._id !== id && item.id !== id)
-      }));
-    }
-  };
-
-  // 3. EXPERIENCE
-  const updateExperience = async (id, updatedItem) => {
-    const res = await apiCall(`experience/${id}`, 'PUT', updatedItem);
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        experience: prev.experience.map(item => (item._id === id || item.id === id) ? res : item)
-      }));
-    }
-  };
-  const deleteExperience = async (id) => {
-    const res = await apiCall(`experience/${id}`, 'DELETE');
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        experience: prev.experience.filter(item => item._id !== id && item.id !== id)
-      }));
-    }
-  };
-
-  // 4. QUALIFICATIONS
-  const updateQualification = async (id, updatedItem) => {
-    const res = await apiCall(`qualifications/${id}`, 'PUT', updatedItem);
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        qualifications: prev.qualifications.map(item => (item._id === id || item.id === id) ? res : item)
-      }));
-    }
-  };
-  const deleteQualification = async (id) => {
-    const res = await apiCall(`qualifications/${id}`, 'DELETE');
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        qualifications: prev.qualifications.filter(item => item._id !== id && item.id !== id)
-      }));
-    }
-  };
-
-  // 5. TESTIMONIALS
-  const updateTestimonial = async (id, updatedItem) => {
-    const res = await apiCall(`testimonials/${id}`, 'PUT', updatedItem);
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        testimonials: prev.testimonials.map(item => (item._id === id || item.id === id) ? res : item)
-      }));
-    }
-  };
-  const deleteTestimonial = async (id) => {
-    const res = await apiCall(`testimonials/${id}`, 'DELETE');
-    if (res) {
-      setData(prev => ({
-        ...prev,
-        testimonials: prev.testimonials.filter(item => item._id !== id && item.id !== id)
-      }));
-    }
-  };
-
-  // Placeholders for Custom Sections
-  const addCustomSection = () => {};
-  const deleteCustomSection = () => {};
-  const addCustomEntry = () => {};
-  const updateCustomEntry = () => {};
-  const deleteCustomEntry = () => {};
+  // Placeholders
+  const addCustomSection = () => {}; const deleteCustomSection = () => {}; const addCustomEntry = () => {}; const updateCustomEntry = () => {}; const deleteCustomEntry = () => {};
 
   const value = {
-    data,
-    loading,
-    isAdmin,
-    login,
-    logout,
-    // Update Single
+    data, loading, isAdmin, login, logout,
+    submitContactForm, // ✅ Added to Context Value
     updateHero, updateAbout, updateContact, updateSocial, updateTheme,
-    // Add Array
     addQualification, addSkill, addExperience, addProject, addTestimonial,
-    // Update Array
     updateQualification, updateSkill, updateExperience, updateProject, updateTestimonial,
-    // Delete Array
     deleteQualification, deleteSkill, deleteExperience, deleteProject, deleteTestimonial,
-    // Custom
     addCustomSection, deleteCustomSection, addCustomEntry, updateCustomEntry, deleteCustomEntry
   };
 
+  // ============================================================
+  // 5. SAFETY RENDER (Prevent Crashes)
+  // ============================================================
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  // Error Screen for Mobile/Network Issues
+  if (error || !data) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center p-6 text-center bg-gray-50">
+        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Connection Failed</h2>
+          <p className="text-gray-600 mb-6">
+            Could not connect to the Backend Server.
+          </p>
+          
+          <div className="bg-gray-100 p-4 rounded mb-6 text-left text-sm font-mono text-gray-700">
+            Current Target:<br/>
+            <strong>{BASE_URL}</strong>
+          </div>
+
+          <div className="text-sm text-gray-500 mb-6">
+            <ul className="list-disc list-inside text-left">
+              <li>Is your PC running the Backend?</li>
+              <li>Is your Phone on the same WiFi?</li>
+              <li>Is your PC Firewall blocking Node.js?</li>
+            </ul>
+          </div>
+
+          <button 
+            onClick={() => window.location.reload()} 
+            className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 transition"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <PortfolioContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </PortfolioContext.Provider>
   );
 };
