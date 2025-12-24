@@ -1,7 +1,7 @@
 const express = require('express');
 const Portfolio = require('../models/Portfolio');
 const auth = require('../middleware/auth');
-const nodemailer = require('nodemailer'); // Import Nodemailer
+const nodemailer = require('nodemailer');
 const router = express.Router();
 
 // =================================================================
@@ -18,44 +18,48 @@ router.get('/', async (req, res) => {
   }
 });
 
-// ✅ CONTACT FORM (SEND EMAIL)
+// ✅ CONTACT FORM (SECURE EMAIL SENDING)
 router.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
   try {
-    // 1. Configure the Email Transporter
+    // 1. Configure Transporter using .env variables
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        // ⚠️ REPLACE THESE WITH YOUR REAL DETAILS ⚠️
-        user: 'ahmadsaith145@gmail.com', 
-        pass: 'rteu swbd mdsq qlzf' // Your 16-char App Password
+        user: process.env.EMAIL_USER, // Loaded from .env file
+        pass: process.env.EMAIL_PASS  // Loaded from .env file
       }
     });
 
-    // 2. Set up email data
+    // 2. Configure Email Options (Fixed for Gmail Policies)
     const mailOptions = {
-      from: email, // Sender address
-      to: 'your.real.email@gmail.com', // ⚠️ YOUR EMAIL (Where you receive it)
+      from: process.env.EMAIL_USER,   // ⚠️ MUST be your authenticated email
+      to: process.env.EMAIL_USER,     // Sending to yourself
+      replyTo: email,                 // ⚠️ Visitor's email goes here
       subject: `Portfolio Message from ${name}`,
       text: `
-        Name: ${name}
-        Email: ${email}
+        You have received a new message via your Portfolio contact form.
+
+        --------------------------------------------------
+        Name:    ${name}
+        Email:   ${email}
+        --------------------------------------------------
         
         Message:
         ${message}
       `
     };
 
-    // 3. Send email
+    // 3. Send Email
     await transporter.sendMail(mailOptions);
 
-    console.log(`✅ Email sent from ${name}`);
+    console.log(`✅ Email sent successfully from ${name}`);
     res.json({ success: true, message: "Email sent successfully!" });
 
   } catch (error) {
     console.error("❌ Email Error:", error);
-    res.status(500).json({ error: "Failed to send email. Check backend logs." });
+    res.status(500).json({ error: "Failed to send email. Check server logs." });
   }
 });
 
@@ -80,7 +84,7 @@ const updateSingle = async (req, res, field) => {
 
 router.put('/hero', auth, (req, res) => updateSingle(req, res, 'hero'));
 router.put('/about', auth, (req, res) => updateSingle(req, res, 'about'));
-router.put('/contact', auth, (req, res) => updateSingle(req, res, 'contact')); // Updates your address/phone info
+router.put('/contact', auth, (req, res) => updateSingle(req, res, 'contact')); // Updates address/phone text
 router.put('/social', auth, (req, res) => updateSingle(req, res, 'social'));
 router.put('/theme', auth, (req, res) => updateSingle(req, res, 'theme'));
 
@@ -112,7 +116,7 @@ router.post('/testimonials', auth, (req, res) => addItem(req, res, 'testimonials
 
 
 // =================================================================
-// 4. DELETE & UPDATE ROUTES (FIXED & WORKING)
+// 4. DELETE & UPDATE ROUTES (Items in Arrays)
 // =================================================================
 
 // --- DELETE HELPER ---
@@ -142,7 +146,7 @@ const updateItem = async (req, res, field) => {
     const item = portfolio[field].id(req.params.id);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
-    // 2. Remove _id from body to prevent immutable field error
+    // 2. Remove _id from body to prevent "Modifying immutable field" error
     const { _id, ...updateData } = req.body;
 
     // 3. Update
