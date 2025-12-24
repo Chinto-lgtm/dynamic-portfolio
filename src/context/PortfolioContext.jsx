@@ -15,11 +15,8 @@ export const PortfolioProvider = ({ children }) => {
   // 1. INITIALIZATION
   // ============================================================
   useEffect(() => {
-    // Check if admin is logged in
     const token = localStorage.getItem('token');
     if (token) setIsAdmin(true);
-
-    // Fetch initial data from MongoDB
     fetchData();
   }, []);
 
@@ -59,11 +56,10 @@ export const PortfolioProvider = ({ children }) => {
       
       if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
       
-      // Return response data if it exists
       return await res.json();
     } catch (error) {
       console.error(`Action failed [${method} ${endpoint}]:`, error);
-      alert("Operation failed. Check console.");
+      // alert("Operation failed. Check console."); 
       return null;
     }
   };
@@ -78,7 +74,6 @@ export const PortfolioProvider = ({ children }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
       });
-      
       const resData = await res.json();
       
       if (res.ok) {
@@ -90,7 +85,6 @@ export const PortfolioProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
-      console.error("Login error:", error);
       return false;
     }
   };
@@ -102,153 +96,180 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // ============================================================
-  // 4. DATA UPDATES (Connected to Backend)
+  // 4. DATA UPDATES
   // ============================================================
 
   // --- SINGLE SECTIONS ---
-  const updateHero = async (heroData) => {
-    const updated = await apiCall('hero', 'PUT', heroData);
-    if (updated) setData(prev => ({ ...prev, hero: updated }));
+  const updateHero = async (data) => {
+    const res = await apiCall('hero', 'PUT', data);
+    if (res) setData(prev => ({ ...prev, hero: res }));
+  };
+  const updateAbout = async (data) => {
+    const res = await apiCall('about', 'PUT', data);
+    if (res) setData(prev => ({ ...prev, about: res }));
+  };
+  const updateContact = async (data) => {
+    const res = await apiCall('contact', 'PUT', data);
+    if (res) setData(prev => ({ ...prev, contact: res }));
+  };
+  const updateSocial = async (data) => {
+    const res = await apiCall('social', 'PUT', data);
+    if (res) setData(prev => ({ ...prev, social: res }));
+  };
+  const updateTheme = async (data) => {
+    const res = await apiCall('theme', 'PUT', data);
+    if (res) setData(prev => ({ ...prev, theme: res }));
   };
 
-  const updateAbout = async (aboutData) => {
-    const updated = await apiCall('about', 'PUT', aboutData);
-    if (updated) setData(prev => ({ ...prev, about: updated }));
+  // --- ARRAYS: ADD NEW ITEMS ---
+  const addSkill = async (item) => {
+    const res = await apiCall('skills', 'POST', item);
+    if (res) setData(prev => ({ ...prev, skills: [...(prev.skills || []), res] }));
+  };
+  const addProject = async (item) => {
+    const res = await apiCall('projects', 'POST', item);
+    if (res) setData(prev => ({ ...prev, projects: [...(prev.projects || []), res] }));
+  };
+  const addExperience = async (item) => {
+    const res = await apiCall('experience', 'POST', item);
+    if (res) setData(prev => ({ ...prev, experience: [...(prev.experience || []), res] }));
+  };
+  const addQualification = async (item) => {
+    const res = await apiCall('qualifications', 'POST', item);
+    if (res) setData(prev => ({ ...prev, qualifications: [...(prev.qualifications || []), res] }));
+  };
+  const addTestimonial = async (item) => {
+    const res = await apiCall('testimonials', 'POST', item);
+    if (res) setData(prev => ({ ...prev, testimonials: [...(prev.testimonials || []), res] }));
   };
 
-  const updateContact = async (contactData) => {
-    const updated = await apiCall('contact', 'PUT', contactData);
-    if (updated) setData(prev => ({ ...prev, contact: updated }));
-  };
+  // --- ARRAYS: UPDATE & DELETE (NOW FULLY CONNECTED) ---
 
-  const updateSocial = async (socialData) => {
-    const updated = await apiCall('social', 'PUT', socialData);
-    if (updated) setData(prev => ({ ...prev, social: updated }));
-  };
-
-  const updateTheme = async (themeData) => {
-    const updated = await apiCall('theme', 'PUT', themeData);
-    if (updated) setData(prev => ({ ...prev, theme: updated }));
-  };
-
-  // --- ARRAYS (Add Items) ---
-  const addQualification = async (qualification) => {
-    const newItem = await apiCall('qualifications', 'POST', qualification);
-    if (newItem) {
-      setData(prev => ({ 
-        ...prev, 
-        qualifications: [...(prev.qualifications || []), newItem] 
+  // 1. SKILLS
+  const updateSkill = async (id, updatedItem) => {
+    // We send only the data, apiCall handles the token
+    const res = await apiCall(`skills/${id}`, 'PUT', updatedItem);
+    if (res) {
+      // Backend returns the SINGLE updated item
+      setData(prev => ({
+        ...prev,
+        skills: prev.skills.map(item => (item._id === id || item.id === id) ? res : item)
       }));
     }
   };
-
-  const addSkill = async (skill) => {
-    const newItem = await apiCall('skills', 'POST', skill);
-    if (newItem) {
-      setData(prev => ({ 
-        ...prev, 
-        skills: [...(prev.skills || []), newItem] 
-      }));
-    }
-  };
-
-  const addExperience = async (exp) => {
-    const newItem = await apiCall('experience', 'POST', exp);
-    if (newItem) {
-      setData(prev => ({ 
-        ...prev, 
-        experience: [...(prev.experience || []), newItem] 
-      }));
-    }
-  };
-
-  const addProject = async (proj) => {
-    const newItem = await apiCall('projects', 'POST', proj);
-    if (newItem) {
-      setData(prev => ({ 
-        ...prev, 
-        projects: [...(prev.projects || []), newItem] 
-      }));
-    }
-  };
-
-  const addTestimonial = async (test) => {
-    const newItem = await apiCall('testimonials', 'POST', test);
-    if (newItem) {
-      setData(prev => ({ 
-        ...prev, 
-        testimonials: [...(prev.testimonials || []), newItem] 
-      }));
-    }
-  };
-
-  // --- ARRAYS (Update/Delete Placeholders) ---
-  // Note: To fully support Update/Delete for specific items, 
-  // you need to add PUT/DELETE routes (/:id) to your backend logic later.
-  // For now, these functions will update the Local UI to keep the app from crashing.
-  
-  const updateSkill = (id, updatedSkill) => {
-    // Ideally: await apiCall(`skills/${id}`, 'PUT', updatedSkill);
-    console.warn("Backend update for specific items not yet implemented, updating UI only.");
-    setData(prev => ({
-      ...prev,
-      skills: prev.skills.map(s => s._id === id || s.id === id ? { ...s, ...updatedSkill } : s)
-    }));
-  };
-
   const deleteSkill = async (id) => {
-    // Ideally: await apiCall(`skills/${id}`, 'DELETE');
-    // For now, we update UI
-    setData(prev => ({
-      ...prev,
-      skills: prev.skills.filter(s => s._id !== id && s.id !== id)
-    }));
+    const res = await apiCall(`skills/${id}`, 'DELETE');
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        skills: prev.skills.filter(item => item._id !== id && item.id !== id)
+      }));
+    }
   };
-  
-  // (Repeat similar logic for other delete/update functions as needed to prevent errors)
-  const updateQualification = (id, data) => {}; 
-  const deleteQualification = (id) => {};
-  const updateExperience = (id, data) => {};
-  const deleteExperience = (id) => {};
-  const updateProject = (id, data) => {};
-  const deleteProject = (id) => {};
-  const updateTestimonial = (id, data) => {};
-  const deleteTestimonial = (id) => {};
+
+  // 2. PROJECTS
+  const updateProject = async (id, updatedItem) => {
+    const res = await apiCall(`projects/${id}`, 'PUT', updatedItem);
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        projects: prev.projects.map(item => (item._id === id || item.id === id) ? res : item)
+      }));
+    }
+  };
+  const deleteProject = async (id) => {
+    const res = await apiCall(`projects/${id}`, 'DELETE');
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        projects: prev.projects.filter(item => item._id !== id && item.id !== id)
+      }));
+    }
+  };
+
+  // 3. EXPERIENCE
+  const updateExperience = async (id, updatedItem) => {
+    const res = await apiCall(`experience/${id}`, 'PUT', updatedItem);
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        experience: prev.experience.map(item => (item._id === id || item.id === id) ? res : item)
+      }));
+    }
+  };
+  const deleteExperience = async (id) => {
+    const res = await apiCall(`experience/${id}`, 'DELETE');
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        experience: prev.experience.filter(item => item._id !== id && item.id !== id)
+      }));
+    }
+  };
+
+  // 4. QUALIFICATIONS
+  const updateQualification = async (id, updatedItem) => {
+    const res = await apiCall(`qualifications/${id}`, 'PUT', updatedItem);
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        qualifications: prev.qualifications.map(item => (item._id === id || item.id === id) ? res : item)
+      }));
+    }
+  };
+  const deleteQualification = async (id) => {
+    const res = await apiCall(`qualifications/${id}`, 'DELETE');
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        qualifications: prev.qualifications.filter(item => item._id !== id && item.id !== id)
+      }));
+    }
+  };
+
+  // 5. TESTIMONIALS
+  const updateTestimonial = async (id, updatedItem) => {
+    const res = await apiCall(`testimonials/${id}`, 'PUT', updatedItem);
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        testimonials: prev.testimonials.map(item => (item._id === id || item.id === id) ? res : item)
+      }));
+    }
+  };
+  const deleteTestimonial = async (id) => {
+    const res = await apiCall(`testimonials/${id}`, 'DELETE');
+    if (res) {
+      setData(prev => ({
+        ...prev,
+        testimonials: prev.testimonials.filter(item => item._id !== id && item.id !== id)
+      }));
+    }
+  };
+
+  // Placeholders for Custom Sections
   const addCustomSection = () => {};
   const deleteCustomSection = () => {};
   const addCustomEntry = () => {};
   const updateCustomEntry = () => {};
   const deleteCustomEntry = () => {};
 
-  // ============================================================
-  // 5. EXPORT
-  // ============================================================
   const value = {
     data,
     loading,
     isAdmin,
     login,
     logout,
-    // Update functions
-    updateHero,
-    updateAbout,
-    updateContact,
-    updateSocial,
-    updateTheme,
-    // Add functions (Connected to DB)
-    addQualification,
-    addSkill,
-    addExperience,
-    addProject,
-    addTestimonial,
-    // Placeholders (UI Only for now)
-    updateQualification, deleteQualification,
-    updateSkill, deleteSkill,
-    updateExperience, deleteExperience,
-    updateProject, deleteProject,
-    updateTestimonial, deleteTestimonial,
-    addCustomSection, deleteCustomSection,
-    addCustomEntry, updateCustomEntry, deleteCustomEntry
+    // Update Single
+    updateHero, updateAbout, updateContact, updateSocial, updateTheme,
+    // Add Array
+    addQualification, addSkill, addExperience, addProject, addTestimonial,
+    // Update Array
+    updateQualification, updateSkill, updateExperience, updateProject, updateTestimonial,
+    // Delete Array
+    deleteQualification, deleteSkill, deleteExperience, deleteProject, deleteTestimonial,
+    // Custom
+    addCustomSection, deleteCustomSection, addCustomEntry, updateCustomEntry, deleteCustomEntry
   };
 
   return (
@@ -257,3 +278,5 @@ export const PortfolioProvider = ({ children }) => {
     </PortfolioContext.Provider>
   );
 };
+
+export const usePortfolio = () => useContext(PortfolioContext);

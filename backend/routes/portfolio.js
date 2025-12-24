@@ -8,8 +8,6 @@ const router = express.Router();
 // =================================================================
 router.get('/', async (req, res) => {
   try {
-    // Fetches the first portfolio found. 
-    // Since you are the only user, this works perfectly.
     const portfolio = await Portfolio.findOne();
     res.json(portfolio || {});
   } catch (error) {
@@ -21,149 +19,122 @@ router.get('/', async (req, res) => {
 // 2. SINGLE SECTIONS (Hero, About, Contact, Social, Theme)
 // =================================================================
 
-// Update Hero
-router.put('/hero', auth, async (req, res) => {
+// Helper for Single Sections
+const updateSingle = async (req, res, field) => {
   try {
     const portfolio = await Portfolio.findOneAndUpdate(
       { userId: req.userId },
-      { $set: { hero: req.body, updatedAt: Date.now() } },
+      { $set: { [field]: req.body, updatedAt: Date.now() } },
       { new: true, upsert: true }
     );
-    res.json(portfolio.hero);
+    res.json(portfolio[field]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
 
-// Update About
-router.put('/about', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $set: { about: req.body, updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    res.json(portfolio.about);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.put('/hero', auth, (req, res) => updateSingle(req, res, 'hero'));
+router.put('/about', auth, (req, res) => updateSingle(req, res, 'about'));
+router.put('/contact', auth, (req, res) => updateSingle(req, res, 'contact'));
+router.put('/social', auth, (req, res) => updateSingle(req, res, 'social'));
+router.put('/theme', auth, (req, res) => updateSingle(req, res, 'theme'));
 
-// Update Contact
-router.put('/contact', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $set: { contact: req.body, updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    res.json(portfolio.contact);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update Social Links
-router.put('/social', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $set: { social: req.body, updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    res.json(portfolio.social);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update Theme
-router.put('/theme', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $set: { theme: req.body, updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    res.json(portfolio.theme);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // =================================================================
-// 3. ARRAY SECTIONS (Skills, Projects, Experience, Qualifications)
+// 3. ARRAY SECTIONS (Add New Items)
 // =================================================================
 
-// --- QUALIFICATIONS ---
-router.post('/qualifications', auth, async (req, res) => {
+const addItem = async (req, res, field) => {
   try {
     const portfolio = await Portfolio.findOneAndUpdate(
       { userId: req.userId },
-      { $push: { qualifications: req.body }, $set: { updatedAt: Date.now() } },
+      { $push: { [field]: req.body }, $set: { updatedAt: Date.now() } },
       { new: true, upsert: true }
     );
-    res.json(portfolio.qualifications[portfolio.qualifications.length - 1]);
+    // Return the last item added (which is now at the end of the array)
+    const newArray = portfolio[field];
+    res.json(newArray[newArray.length - 1]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
 
-// --- SKILLS ---
-router.post('/skills', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $push: { skills: req.body }, $set: { updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    // Return the last added item
-    res.json(portfolio.skills[portfolio.skills.length - 1]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.post('/skills', auth, (req, res) => addItem(req, res, 'skills'));
+router.post('/projects', auth, (req, res) => addItem(req, res, 'projects'));
+router.post('/experience', auth, (req, res) => addItem(req, res, 'experience'));
+router.post('/qualifications', auth, (req, res) => addItem(req, res, 'qualifications'));
+router.post('/testimonials', auth, (req, res) => addItem(req, res, 'testimonials'));
 
-// --- PROJECTS ---
-router.post('/projects', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $push: { projects: req.body }, $set: { updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    res.json(portfolio.projects[portfolio.projects.length - 1]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// --- EXPERIENCE ---
-router.post('/experience', auth, async (req, res) => {
-  try {
-    const portfolio = await Portfolio.findOneAndUpdate(
-      { userId: req.userId },
-      { $push: { experience: req.body }, $set: { updatedAt: Date.now() } },
-      { new: true, upsert: true }
-    );
-    res.json(portfolio.experience[portfolio.experience.length - 1]);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// =================================================================
+// 4. DELETE & UPDATE ROUTES (FIXED)
+// =================================================================
 
-// --- TESTIMONIALS ---
-router.post('/testimonials', auth, async (req, res) => {
+// --- DELETE HELPER ---
+const deleteItem = async (req, res, field) => {
   try {
     const portfolio = await Portfolio.findOneAndUpdate(
       { userId: req.userId },
-      { $push: { testimonials: req.body }, $set: { updatedAt: Date.now() } },
-      { new: true, upsert: true }
+      { $pull: { [field]: { _id: req.params.id } } }, // Remove item with matching _id
+      { new: true }
     );
-    res.json(portfolio.testimonials[portfolio.testimonials.length - 1]);
+    
+    if (!portfolio) return res.status(404).json({ error: "Portfolio not found" });
+    
+    // Return success
+    res.json({ success: true, message: "Item deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-});
+};
+
+// --- UPDATE HELPER (BUG FIXED HERE) ---
+const updateItem = async (req, res, field) => {
+  try {
+    const portfolio = await Portfolio.findOne({ userId: req.userId });
+    if (!portfolio) return res.status(404).json({ error: "Portfolio not found" });
+
+    // 1. Find the specific item in the array
+    const item = portfolio[field].id(req.params.id);
+    if (!item) return res.status(404).json({ error: "Item not found" });
+
+    // 2. SAFETY FIX: Remove _id from the update data so Mongoose doesn't crash
+    const { _id, ...updateData } = req.body;
+
+    // 3. Update the item
+    item.set(updateData);
+    
+    // 4. Save
+    await portfolio.save();
+    
+    // 5. Return ONLY the updated item (as an Object)
+    res.json(item); 
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// --- DEFINE THE ROUTES ---
+
+// Skills
+router.delete('/skills/:id', auth, (req, res) => deleteItem(req, res, 'skills'));
+router.put('/skills/:id', auth, (req, res) => updateItem(req, res, 'skills'));
+
+// Projects
+router.delete('/projects/:id', auth, (req, res) => deleteItem(req, res, 'projects'));
+router.put('/projects/:id', auth, (req, res) => updateItem(req, res, 'projects'));
+
+// Experience
+router.delete('/experience/:id', auth, (req, res) => deleteItem(req, res, 'experience'));
+router.put('/experience/:id', auth, (req, res) => updateItem(req, res, 'experience'));
+
+// Qualifications
+router.delete('/qualifications/:id', auth, (req, res) => deleteItem(req, res, 'qualifications'));
+router.put('/qualifications/:id', auth, (req, res) => updateItem(req, res, 'qualifications'));
+
+// Testimonials
+router.delete('/testimonials/:id', auth, (req, res) => deleteItem(req, res, 'testimonials'));
+router.put('/testimonials/:id', auth, (req, res) => updateItem(req, res, 'testimonials'));
 
 module.exports = router;

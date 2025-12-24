@@ -37,31 +37,40 @@ export const SkillsAdmin = () => {
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.label) {
       toast.error('Skill label is required');
       return;
     }
 
-    if (editingItem) {
-      updateSkill(editingItem.id, formData);
-      toast.success('Skill updated successfully!');
-    } else {
-      addSkill(formData);
-      toast.success('Skill added successfully!');
+    try {
+      if (editingItem) {
+        await updateSkill(editingItem._id, formData);
+        toast.success('Skill updated successfully!');
+      } else {
+        await addSkill(formData);
+        toast.success('Skill added successfully!');
+      }
+      setIsModalOpen(false);
+      resetForm();
+    } catch (error) {
+      toast.error('Failed to save skill');
     }
-
-    setIsModalOpen(false);
-    resetForm();
   };
 
-  const handleDelete = (id) => {
-    deleteSkill(id);
-    toast.success('Skill deleted successfully!');
-    setDeleteConfirm(null);
+  const handleDelete = async (id) => {
+    try {
+      // FIX 2: Ensure ID is passed correctly
+      await deleteSkill(id);
+      toast.success('Skill deleted successfully!');
+      setDeleteConfirm(null);
+    } catch (error) {
+      toast.error('Failed to delete skill');
+    }
   };
 
-  const groupedSkills = data.skills.reduce((acc, skill) => {
+  // Group skills by category
+  const groupedSkills = (data?.skills || []).reduce((acc, skill) => {
     const category = skill.category || 'Other';
     if (!acc[category]) acc[category] = [];
     acc[category].push(skill);
@@ -88,8 +97,8 @@ export const SkillsAdmin = () => {
           <Card key={category} padding="lg">
             <h4 className="mb-6 text-[var(--color-primary)]">{category}</h4>
             <div className="space-y-4">
-              {skills.map(skill => (
-                <div key={skill.id} className="flex items-center gap-4">
+              {skills.map((skill, index) => (
+                <div key={skill._id || index} className="flex items-center gap-4">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <span>{skill.label}</span>
@@ -122,7 +131,7 @@ export const SkillsAdmin = () => {
           </Card>
         ))}
 
-        {data.skills.length === 0 && (
+        {(!data?.skills || data.skills.length === 0) && (
           <Card padding="lg" className="text-center">
             <p className="text-[var(--color-text-secondary)] m-0">
               No skills added yet. Click "Add Skill" to get started.
@@ -154,7 +163,7 @@ export const SkillsAdmin = () => {
             label="Skill Label"
             value={formData.label}
             onChange={(e) => setFormData({ ...formData, label: e.target.value })}
-            placeholder="skills[].label"
+            placeholder="e.g. React"
             required
           />
 
@@ -184,7 +193,7 @@ export const SkillsAdmin = () => {
       <ConfirmModal
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm.id)}
+        onConfirm={() => handleDelete(deleteConfirm?._id)}
         title="Delete Skill"
         message={`Are you sure you want to delete "${deleteConfirm?.label}"?`}
         confirmText="Delete"

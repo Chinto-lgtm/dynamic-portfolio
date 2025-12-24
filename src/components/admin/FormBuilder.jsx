@@ -10,12 +10,15 @@ import { usePortfolio } from '../../hooks/usePortfolio';
 export const FormBuilder = () => {
   const { data, addCustomSection, addCustomEntry, updateCustomEntry, deleteCustomEntry, deleteCustomSection } = usePortfolio();
   const toast = useToast();
+  
+  // Modal States
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
+  // Form States
   const [sectionForm, setSectionForm] = useState({
     name: '',
     fields: []
@@ -39,6 +42,7 @@ export const FormBuilder = () => {
     { value: 'image-url', label: 'Image URL' }
   ];
 
+  // --- LOCAL FORM LOGIC (Keep 'id' here as these are temporary) ---
   const handleAddField = () => {
     if (!fieldForm.label || !fieldForm.name) {
       toast.error('Field label and name are required');
@@ -47,7 +51,7 @@ export const FormBuilder = () => {
 
     setSectionForm(prev => ({
       ...prev,
-      fields: [...prev.fields, { ...fieldForm, id: Date.now() }]
+      fields: [...prev.fields, { ...fieldForm, id: Date.now() }] // Local ID is fine here
     }));
 
     setFieldForm({
@@ -77,11 +81,19 @@ export const FormBuilder = () => {
     setSectionForm({ name: '', fields: [] });
   };
 
+  // --- DATABASE LOGIC (Use '_id' here) ---
+
+  const handleDeleteSection = (section) => {
+    // FIX 1: Use _id from MongoDB
+    deleteCustomSection(section._id);
+    toast.success('Section deleted successfully!');
+  };
+
   const handleAddEntry = (section) => {
     setSelectedSection(section);
     setEditingEntry(null);
     
-    // Initialize form with empty values
+    // Initialize form
     const initialForm = {};
     section.fields.forEach(field => {
       initialForm[field.name] = '';
@@ -98,7 +110,6 @@ export const FormBuilder = () => {
   };
 
   const handleSaveEntry = () => {
-    // Validate required fields
     const hasErrors = selectedSection.fields.some(field => {
       return field.required && !entryForm[field.name];
     });
@@ -109,10 +120,11 @@ export const FormBuilder = () => {
     }
 
     if (editingEntry) {
-      updateCustomEntry(selectedSection.id, editingEntry.id, entryForm);
+      // FIX 2: Use _id for updates
+      updateCustomEntry(selectedSection._id, editingEntry._id, entryForm);
       toast.success('Entry updated successfully!');
     } else {
-      addCustomEntry(selectedSection.id, entryForm);
+      addCustomEntry(selectedSection._id, entryForm);
       toast.success('Entry added successfully!');
     }
 
@@ -121,12 +133,10 @@ export const FormBuilder = () => {
     setSelectedSection(null);
   };
 
-  const handleDeleteSection = (section) => {
-    deleteCustomSection(section.id);
-    toast.success('Section deleted successfully!');
-  };
-
   const renderField = (field) => {
+    // FIX 3: Use _id for key (fallback to id if local)
+    const key = field._id || field.id; 
+    
     const commonProps = {
       label: field.label,
       required: field.required,
@@ -136,14 +146,14 @@ export const FormBuilder = () => {
 
     switch (field.type) {
       case 'textarea':
-        return <Textarea key={field.id} {...commonProps} rows={4} />;
+        return <Textarea key={key} {...commonProps} rows={4} />;
       case 'number':
-        return <Input key={field.id} {...commonProps} type="number" />;
+        return <Input key={key} {...commonProps} type="number" />;
       case 'date':
-        return <Input key={field.id} {...commonProps} type="date" />;
+        return <Input key={key} {...commonProps} type="date" />;
       case 'image-url':
         return (
-          <div key={field.id}>
+          <div key={key}>
             <Input {...commonProps} placeholder="https://..." />
             {entryForm[field.name] && (
               <img 
@@ -156,7 +166,7 @@ export const FormBuilder = () => {
           </div>
         );
       default:
-        return <Input key={field.id} {...commonProps} />;
+        return <Input key={key} {...commonProps} />;
     }
   };
 
@@ -175,11 +185,11 @@ export const FormBuilder = () => {
         </Button>
       </div>
 
-      {data.customSections.length === 0 ? (
+      {(!data.customSections || data.customSections.length === 0) ? (
         <Card padding="lg" className="text-center">
           <h4 className="mb-4">No Custom Sections Yet</h4>
           <p className="text-[var(--color-text-secondary)] mb-6">
-            Create custom content types like Certifications, Awards, or Publications by defining form schemas.
+            Create custom content types like Certifications, Awards, or Publications.
           </p>
           <Button variant="primary" onClick={() => setIsSectionModalOpen(true)}>
             Create Your First Section
@@ -188,7 +198,8 @@ export const FormBuilder = () => {
       ) : (
         <div className="space-y-6">
           {data.customSections.map(section => (
-            <Card key={section.id} padding="lg">
+            // FIX 4: Use _id for Section Key
+            <Card key={section._id} padding="lg">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="mb-1">{section.name}</h3>
@@ -216,7 +227,8 @@ export const FormBuilder = () => {
                 <h6 className="mb-3">Field Schema:</h6>
                 <div className="space-y-2">
                   {section.fields.map(field => (
-                    <div key={field.id} className="flex items-center gap-3 text-sm">
+                    // FIX 5: Use _id for Fields (from DB)
+                    <div key={field._id} className="flex items-center gap-3 text-sm">
                       <GripVertical size={16} className="text-[var(--color-text-secondary)]" />
                       <span className="font-mono">{field.name}</span>
                       <span className="text-[var(--color-text-secondary)]">({field.type})</span>
@@ -234,11 +246,12 @@ export const FormBuilder = () => {
               <div className="space-y-3">
                 {section.entries && section.entries.length > 0 ? (
                   section.entries.map(entry => (
-                    <div key={entry.id} className="p-4 bg-[var(--color-bg)] rounded-lg">
+                    // FIX 6: Use _id for Entries
+                    <div key={entry._id} className="p-4 bg-[var(--color-bg)] rounded-lg">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 grid grid-cols-2 gap-3">
                           {section.fields.slice(0, 4).map(field => (
-                            <div key={field.id}>
+                            <div key={field._id}>
                               <p className="text-xs text-[var(--color-text-secondary)] mb-1 m-0">
                                 {field.label}
                               </p>
@@ -264,7 +277,8 @@ export const FormBuilder = () => {
                             <Edit2 size={16} className="text-[var(--color-primary)]" />
                           </button>
                           <button
-                            onClick={() => setDeleteConfirm({ type: 'entry', sectionId: section.id, item: entry })}
+                            // FIX 7: Pass IDs for delete confirmation
+                            onClick={() => setDeleteConfirm({ type: 'entry', sectionId: section._id, item: entry })}
                             className="p-2 hover:bg-[var(--color-surface)] rounded-lg transition-colors"
                           >
                             <Trash2 size={16} className="text-[var(--color-error)]" />
@@ -280,8 +294,8 @@ export const FormBuilder = () => {
                 )}
               </div>
             </Card>
-          ))}
-        </div>
+          ))
+        }</div>
       )}
 
       {/* Create Section Modal */}
@@ -357,7 +371,7 @@ export const FormBuilder = () => {
               </Button>
             </Card>
 
-            {/* Fields List */}
+            {/* Local Fields List (Uses local ID) */}
             {sectionForm.fields.length > 0 && (
               <div className="space-y-2">
                 {sectionForm.fields.map(field => (
@@ -419,7 +433,8 @@ export const FormBuilder = () => {
           if (deleteConfirm.type === 'section') {
             handleDeleteSection(deleteConfirm.item);
           } else {
-            deleteCustomEntry(deleteConfirm.sectionId, deleteConfirm.item.id);
+            // FIX 8: Ensure we pass _id for deletion
+            deleteCustomEntry(deleteConfirm.sectionId, deleteConfirm.item._id);
             toast.success('Entry deleted successfully!');
           }
           setDeleteConfirm(null);

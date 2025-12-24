@@ -70,7 +70,7 @@ export const ExperienceAdmin = () => {
     }
 
     if (editingItem) {
-      updateExperience(editingItem.id, formData);
+      updateExperience(editingItem._id, formData);
       toast.success('Experience updated successfully!');
     } else {
       addExperience(formData);
@@ -104,7 +104,7 @@ export const ExperienceAdmin = () => {
 
       <div className="space-y-6">
         {data.experience.map((exp) => (
-          <Card key={exp.id} padding="lg">
+          <Card key={exp._id} padding="lg">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -267,7 +267,7 @@ export const ExperienceAdmin = () => {
       <ConfirmModal
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm.id)}
+        onConfirm={() => handleDelete(deleteConfirm._id)}
         title="Delete Experience"
         message={`Are you sure you want to delete "${deleteConfirm?.role}" at "${deleteConfirm?.company}"?`}
         confirmText="Delete"

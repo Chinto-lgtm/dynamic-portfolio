@@ -50,7 +50,7 @@ export const QualificationsAdmin = () => {
     }
 
     if (editingItem) {
-      updateQualification(editingItem.id, formData);
+      updateQualification(editingItem._id, formData);
       toast.success('Qualification updated successfully!');
     } else {
       addQualification(formData);
@@ -84,7 +84,7 @@ export const QualificationsAdmin = () => {
 
       <div className="grid md:grid-cols-2 gap-6">
         {data.qualifications.map((qual) => (
-          <Card key={qual.id} padding="lg">
+          <Card key={qual._id} padding="lg">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1 min-w-0">
                 <h4 className="mb-2">{qual.title}</h4>
@@ -192,7 +192,7 @@ export const QualificationsAdmin = () => {
       <ConfirmModal
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm.id)}
+        onConfirm={() => handleDelete(deleteConfirm._id)}
         title="Delete Qualification"
         message={`Are you sure you want to delete "${deleteConfirm?.title}"? This action cannot be undone.`}
         confirmText="Delete"

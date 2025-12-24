@@ -50,7 +50,7 @@ export const TestimonialsAdmin = () => {
     }
 
     if (editingItem) {
-      updateTestimonial(editingItem.id, formData);
+      updateTestimonial(editingItem._id, formData);
       toast.success('Testimonial updated successfully!');
     } else {
       addTestimonial(formData);
@@ -84,7 +84,7 @@ export const TestimonialsAdmin = () => {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.testimonials.map((testimonial) => (
-          <Card key={testimonial.id} padding="lg">
+          <Card key={testimonial._id} padding="lg">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
                 <img
@@ -213,7 +213,7 @@ export const TestimonialsAdmin = () => {
       <ConfirmModal
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm.id)}
+        onConfirm={() => handleDelete(deleteConfirm._id)}
         title="Delete Testimonial"
         message={`Are you sure you want to delete the testimonial from "${deleteConfirm?.name}"?`}
         confirmText="Delete"

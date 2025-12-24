@@ -69,7 +69,7 @@ export const ProjectsAdmin = () => {
     }
 
     if (editingItem) {
-      updateProject(editingItem.id, formData);
+      updateProject(editingItem._id, formData);
       toast.success('Project updated successfully!');
     } else {
       addProject(formData);
@@ -103,7 +103,7 @@ export const ProjectsAdmin = () => {
 
       <div className="grid md:grid-cols-2 gap-6">
         {data.projects.map((project) => (
-          <Card key={project.id} padding="md">
+          <Card key={project._id} padding="md">
             <div className="relative mb-4 rounded-lg overflow-hidden aspect-video bg-[var(--color-bg)]">
               <img
                 src={project.image}
@@ -276,7 +276,7 @@ export const ProjectsAdmin = () => {
       <ConfirmModal
         isOpen={deleteConfirm !== null}
         onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm.id)}
+        onConfirm={() => handleDelete(deleteConfirm._id)}
         title="Delete Project"
         message={`Are you sure you want to delete "${deleteConfirm?.title}"?`}
         confirmText="Delete"
