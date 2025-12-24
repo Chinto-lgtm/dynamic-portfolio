@@ -28,8 +28,8 @@ router.post('/contact', async (req, res) => {
       service: 'gmail',
       auth: {
         // ⚠️ REPLACE THESE WITH YOUR REAL DETAILS ⚠️
-        user: 'your.real.email@gmail.com', 
-        pass: 'xxxx xxxx xxxx xxxx' // Your 16-char App Password
+        user: 'ahmadsaith145@gmail.com', 
+        pass: 'euhb eeoj rywn rusm' // Your 16-char App Password
       }
     });
 
