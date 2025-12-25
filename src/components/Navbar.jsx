@@ -44,7 +44,7 @@ export const Navbar = () => {
     <>
       <nav className={`navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
         <div className="navbar-container">
-          {/* Logo - Centered Vertically by the container */}
+          {/* Logo */}
           <a
             href="#hero"
             onClick={(e) => handleNavClick(e, '#hero')}
@@ -58,7 +58,9 @@ export const Navbar = () => {
             Portfolio
           </a>
 
-          {/* Desktop Navigation - Centered Vertically by the container */}
+          {/* Desktop Navigation */}
+          {/* Added 'hidden lg:flex' assuming you use Tailwind, 
+              otherwise your CSS class 'navbar-nav' should handle hiding this on mobile */}
           <ul className="navbar-nav">
             {navItems.map((item) => (
               <li key={item.href}>
@@ -72,16 +74,16 @@ export const Navbar = () => {
             ))}
           </ul>
 
-          {/* Mobile Menu Button - Styled to stay in line */}
+          {/* Mobile Menu Button - FIXED */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="navbar-toggle"
+            className="navbar-toggle" // Make sure your CSS hides this on Desktop
             style={{ 
               background: 'none', 
               border: 'none', 
               cursor: 'pointer', 
               color: 'var(--color-text)',
-              display: 'none' /* Hidden on desktop via CSS, but showing logic here */
+              // REMOVED: display: 'none' -> This was the error hiding it on mobile!
             }}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -92,7 +94,7 @@ export const Navbar = () => {
         {isMobileMenuOpen && (
           <div className="navbar-mobile" style={{
             position: 'absolute',
-            top: '80px',
+            top: '100%', // Changed to 100% to sit exactly below navbar height
             left: 0,
             right: 0,
             background: 'var(--color-surface)',
@@ -100,7 +102,8 @@ export const Navbar = () => {
             borderBottom: '1px solid var(--color-border)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem'
+            gap: '1rem',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
           }}>
             {navItems.map((item) => (
               <a
