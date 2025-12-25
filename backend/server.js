@@ -12,8 +12,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// ==========================================
+// 🔍 LOGGING MIDDLEWARE (New)
+// ==========================================
+app.use((req, res, next) => {
+  // This prints to Vercel Logs whenever a request hits the server
+  console.log(`➡️  [BACKEND HIT] Method: ${req.method} | Path: ${req.url}`);
+  next();
+});
+// ==========================================
+
 // MongoDB Connection (Optimized for Serverless)
-// We check if a connection already exists to prevent errors on Vercel reloads
 const connectDB = async () => {
   if (mongoose.connection.readyState === 0) {
     try {
@@ -37,19 +46,19 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Portfolio API is running' });
 });
 
-// DEFAULT ROUTE (Important for Vercel to not show 404 on root)
+// DEFAULT ROUTE
 app.get('/', (req, res) => {
   res.send('Portfolio Backend is Live');
 });
 
 // =================================================================
-// CRITICAL CHANGE FOR VERCEL DEPLOYMENT
+// CRITICAL EXPORT FOR VERCEL
 // =================================================================
 
-// 1. Export the app (Required for Vercel)
+// 1. Export the app
 module.exports = app;
 
-// 2. Only run app.listen() if we are NOT on Vercel (e.g., Localhost)
+// 2. Only run app.listen() if we are NOT on Vercel
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
