@@ -1,23 +1,13 @@
 import React, { useState } from 'react';
 import { 
-  LayoutDashboard, 
-  User, 
-  GraduationCap, 
-  Award, 
-  Briefcase, 
-  FolderKanban,
-  MessageSquare,
-  Mail,
-  Palette,
-  Settings,
-  LogOut,
-  Menu,
-  X
+  LayoutDashboard, User, GraduationCap, Award, Briefcase, 
+  FolderKanban, MessageSquare, Mail, Palette, Settings, 
+  LogOut, Menu, X 
 } from 'lucide-react';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
 export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
-  const { logout, data } = usePortfolio();
+  const { logout } = usePortfolio();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
@@ -40,76 +30,130 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg)]">
-      {/* Top Bar */}
-      <div className="sticky top-0 z-40 bg-[var(--color-surface)] border-b border-[var(--color-border)] px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 hover:bg-[var(--color-bg)] rounded-lg transition-colors"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+    // ROOT WRAPPER: Flex Row (Sidebar | Content)
+    // vh-100 ensures the app takes exactly the full screen height
+    <div className="d-flex vh-100 overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
+      
+      {/* =========================================
+          1. SIDEBAR (Full Height, Fixed on Left)
+      ========================================= */}
+      <aside 
+        className={`
+          border-end h-100 overflow-y-auto flex-shrink-0
+          ${isMobileMenuOpen ? 'd-block position-absolute start-0 top-0 shadow' : 'd-none d-lg-block position-relative'}
+        `}
+        style={{ 
+          width: '260px', 
+          backgroundColor: 'var(--color-surface)', 
+          zIndex: 1050, 
+          transition: 'transform 0.3s ease-in-out'
+        }}
+      >
+        {/* Mobile Close Button */}
+        <div className="d-lg-none p-2 text-end border-bottom sticky-top" style={{ backgroundColor: 'var(--color-surface)' }}>
+            <button className="btn btn-sm" onClick={() => setIsMobileMenuOpen(false)}>
+              <X size={20} /> Close
             </button>
-            <h5 className="m-0">Admin Dashboard</h5>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-lg transition-colors"
-          >
-            <LogOut size={20} />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
         </div>
-      </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside
-          className={`
-            fixed lg:sticky top-[57px] left-0 h-[calc(100vh-57px)] w-64 
-            bg-[var(--color-surface)] border-r border-[var(--color-border)] 
-            overflow-y-auto transition-transform duration-300 z-30
-            ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          `}
+        {/* Sidebar Title */}
+        <div className="p-3 border-bottom mb-2">
+           <h5 className="m-0 fw-bold" style={{ color: 'var(--color-text)' }}>Admin Dashboard</h5>
+        </div>
+
+        {/* Navigation */}
+        <div className="p-3 d-flex flex-column gap-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            
+            const activeStyle = isActive ? {
+              backgroundColor: 'var(--color-primary)',
+              color: '#fff', 
+              fontWeight: '500'
+            } : {
+              color: 'var(--color-text)'
+            };
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onSectionChange(item.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="btn d-flex align-items-center gap-3 text-start w-100 py-2 px-3 border-0 rounded"
+                style={{ ...activeStyle, transition: '0.2s' }}
+              >
+                <Icon size={18} />
+                <span className="text-nowrap">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* =========================================
+          2. RIGHT COLUMN (Navbar + Content)
+      ========================================= */}
+      <div className="d-flex flex-column flex-grow-1 w-100 overflow-hidden position-relative">
+        
+        {/* NAVBAR: position-relative ensures it pushes content down (nothing hides behind it) */}
+        <nav 
+          className="navbar border-bottom d-flex flex-shrink-0 align-items-center px-3 position-relative" 
+          style={{ 
+            height: '64px', 
+            backgroundColor: 'var(--color-surface)', 
+            zIndex: 1040 
+          }}
         >
-          <nav className="p-4 space-y-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onSectionChange(item.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className={`
-                    w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-left
-                    ${isActive 
-                      ? 'bg-[var(--color-primary)] text-black' 
-                      : 'text-[var(--color-text)] hover:bg-[var(--color-bg)]'
-                    }
-                  `}
-                >
-                  <Icon size={20} />
-                  <span>{item.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </aside>
+          <div className="w-100 d-flex justify-content-between align-items-center">
+            
+            {/* LEFT: Mobile Toggle (Hidden on Desktop) */}
+            <div className="d-flex align-items-center gap-3">
+              <button 
+                className="btn btn-link p-0 text-dark d-lg-none" 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                style={{ color: 'var(--color-text)' }}
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+              {/* Mobile Title */}
+              <h5 className="m-0 fw-bold d-lg-none" style={{ color: 'var(--color-text)' }}>Menu</h5>
+            </div>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 lg:p-8 w-full lg:w-auto">
-          {children}
+            {/* RIGHT: Logout */}
+            <button 
+              onClick={handleLogout}
+              className="btn d-flex align-items-center gap-2"
+              style={{ color: 'var(--color-error)' }}
+            >
+              <LogOut size={20} />
+              <span className="d-none d-sm-inline">Logout</span>
+            </button>
+          </div>
+        </nav>
+
+        {/* MAIN CONTENT: flex-grow-1 takes remaining height */}
+        <main 
+          className="flex-grow-1 p-4 overflow-y-auto" 
+          style={{ 
+            backgroundColor: 'var(--color-bg)', 
+            minWidth: 0, 
+            overflowX: 'hidden'
+          }}
+        >
+          <div className="container-fluid p-0">
+            {children}
+          </div>
         </main>
       </div>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
+        <div 
+          className="position-absolute top-0 start-0 w-100 h-100 d-lg-none"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1045 }}
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
