@@ -115,13 +115,6 @@ export const Navbar = () => {
                 {item.label}
               </a>
             ))}
-            <a
-              href="/admin"
-              className="btn btn-primary"
-              style={{ textAlign: 'center' }}
-            >
-              Admin
-            </a>
           </div>
         )}
       </nav>
