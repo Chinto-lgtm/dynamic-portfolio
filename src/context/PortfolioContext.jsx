@@ -1,21 +1,23 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+// 1. IMPORT THE CENTRAL CONFIG (Crucial Fix)
+import { API_BASE_URL } from '../config/api';
 
 export const PortfolioContext = createContext();
 
 export const PortfolioProvider = ({ children }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Error State for Mobile/Network issues
+  const [error, setError] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   // ============================================================
-  // CONFIGURATION: NETWORK SETTINGS
+  // CONFIGURATION
   // ============================================================
-  // Using PC IP so mobile devices can connect.
-  const BASE_URL = "https://portfoliobackend-cyan.vercel.app/"; 
+  // We use the imported API_BASE_URL so we don't have to copy-paste links.
+  // API_BASE_URL already includes "/api" at the end.
   
-  const API_URL = `${BASE_URL}/api/portfolio`;
-  const AUTH_URL = `${BASE_URL}/api/auth`;
+  const API_URL = `${API_BASE_URL}/portfolio`;
+  const AUTH_URL = `${API_BASE_URL}/auth`;
 
   // ============================================================
   // 1. INITIALIZATION
@@ -31,26 +33,27 @@ export const PortfolioProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // 1. Attempt to fetch
+      // 🔍 DEBUG LOG: Shows exactly where it is connecting
+      console.log(`🌐 [Context] Fetching Portfolio Data from: ${API_URL}`);
+
       const res = await fetch(API_URL);
       
-      // 2. Check for Server Errors
       if (!res.ok) {
         throw new Error(`Server Error: ${res.status} ${res.statusText}`);
       }
 
       const dbData = await res.json();
       
-      // 3. Safety Check: Ensure data is not null/empty
+      // Safety Check
       if (!dbData || Object.keys(dbData).length === 0) {
         throw new Error("Received empty data from server");
       }
 
       setData(dbData);
       setLoading(false);
+      console.log("✅ [Context] Data Loaded Successfully");
     } catch (err) {
-      console.error("Failed to fetch data:", err);
-      // Set error to show the "Retry" screen
+      console.error("❌ [Context] Failed to fetch data:", err);
       setError(err.message);
       setLoading(false);
     }
@@ -76,7 +79,11 @@ export const PortfolioProvider = ({ children }) => {
       };
       if (body) options.body = JSON.stringify(body);
 
-      const res = await fetch(`${API_URL}/${endpoint}`, options);
+      // Note: endpoint here is relative to /api/portfolio usually
+      const url = `${API_URL}/${endpoint}`;
+      
+      console.log(`🚀 [Context] ${method} Request to: ${url}`);
+      const res = await fetch(url, options);
       
       if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
       
@@ -88,10 +95,15 @@ export const PortfolioProvider = ({ children }) => {
     }
   };
 
-  // ✅ NEW FUNCTION: Send Contact Form (Public)
+  // ✅ Send Contact Form (Public)
   const submitContactForm = async (formData) => {
     try {
-      const res = await fetch(`${API_URL}/contact`, {
+      // Use API_BASE_URL directly for contact to match backend route /api/contact
+      const url = `${API_BASE_URL}/contact`; // or /portfolio/contact depending on your backend routes
+      
+      console.log(`📧 [Context] Sending Email to: ${url}`);
+      
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -105,7 +117,7 @@ export const PortfolioProvider = ({ children }) => {
       return await res.json();
     } catch (error) {
       console.error("Contact form failed:", error);
-      throw error; // Re-throw so the UI can show an error toast
+      throw error;
     }
   };
 
@@ -114,6 +126,7 @@ export const PortfolioProvider = ({ children }) => {
   // ============================================================
   const login = async (username, password) => {
     try {
+      console.log(`🔐 [Context] Logging in at: ${AUTH_URL}/login`);
       const res = await fetch(`${AUTH_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,6 +143,7 @@ export const PortfolioProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
+      console.error("Login error:", error);
       return false;
     }
   };
@@ -177,7 +191,7 @@ export const PortfolioProvider = ({ children }) => {
 
   const value = {
     data, loading, isAdmin, login, logout,
-    submitContactForm, // ✅ Added to Context Value
+    submitContactForm, 
     updateHero, updateAbout, updateContact, updateSocial, updateTheme,
     addQualification, addSkill, addExperience, addProject, addTestimonial,
     updateQualification, updateSkill, updateExperience, updateProject, updateTestimonial,
@@ -209,15 +223,7 @@ export const PortfolioProvider = ({ children }) => {
           
           <div className="bg-gray-100 p-4 rounded mb-6 text-left text-sm font-mono text-gray-700">
             Current Target:<br/>
-            <strong>{BASE_URL}</strong>
-          </div>
-
-          <div className="text-sm text-gray-500 mb-6">
-            <ul className="list-disc list-inside text-left">
-              <li>Is your PC running the Backend?</li>
-              <li>Is your Phone on the same WiFi?</li>
-              <li>Is your PC Firewall blocking Node.js?</li>
-            </ul>
+            <strong>{API_BASE_URL}</strong>
           </div>
 
           <button 
