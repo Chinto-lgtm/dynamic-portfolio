@@ -12,7 +12,7 @@ export const PortfolioProvider = ({ children }) => {
   // CONFIGURATION: NETWORK SETTINGS
   // ============================================================
   // Using PC IP so mobile devices can connect.
-  const BASE_URL = "http://192.168.100.12:5000"; 
+  const BASE_URL = "https://portfoliobackend-cyan.vercel.app/"; 
   
   const API_URL = `${BASE_URL}/api/portfolio`;
   const AUTH_URL = `${BASE_URL}/api/auth`;
