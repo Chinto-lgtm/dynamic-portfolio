@@ -1,11 +1,16 @@
 // src/config/api.js
 
-// 🚨 HARDCODED LINK (Guarantees connection to Vercel)
-export const API_BASE_URL = 'https://portfoliobackend-cyan.vercel.app/api';
+// 1. DYNAMIC URL CONFIGURATION
+// We check the environment variable first. If not found, we default to Localhost.
+const ENV_URL = process.env.REACT_APP_API_URL;
+export const API_BASE_URL = ENV_URL || 'http://localhost:5000/api';
+
+// 2. BACKEND FLAG
 export const USE_BACKEND = true; 
 
-// Initial Debug Log
-console.log("🔌 API Config Loaded. Target:", API_BASE_URL);
+// Debugging: Confirm which API we are using
+console.log("🔌 API Config Loaded.");
+console.log("🎯 Target URL:", API_BASE_URL);
 
 // API Endpoints
 export const API_ENDPOINTS = {
@@ -33,7 +38,7 @@ export const API_ENDPOINTS = {
   CUSTOM_ENTRY: (sectionId, entryId) => `/portfolio/custom-sections/${sectionId}/entries/${entryId}`,
 };
 
-// HTTP Methods Helper (WITH DEBUG LOGS)
+// HTTP Methods Helper
 export const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   
@@ -43,6 +48,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     },
   };
   
+  // Add auth token if available
   const token = localStorage.getItem('authToken');
   if (token) {
     defaultOptions.headers['Authorization'] = `Bearer ${token}`;
@@ -58,21 +64,22 @@ export const apiRequest = async (endpoint, options = {}) => {
   };
   
   // 🔍 FRONTEND LOG: Shows exactly where the request is going
-  console.log(`🚀 [FRONTEND SENDING] ${config.method || 'GET'} Request to: ${url}`);
+  console.log(`🚀 [REQ] ${config.method || 'GET'} -> ${url}`);
   
   try {
     const response = await fetch(url, config);
     
     // 🔍 RESPONSE LOG: Shows if it worked or failed
-    console.log(`📩 [FRONTEND RECEIVED] Status: ${response.status} from ${url}`);
+    console.log(`📩 [RES] Status: ${response.status}`);
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`API Error: ${response.status} ${errorText || response.statusText}`);
     }
     
     return await response.json();
   } catch (error) {
-    console.error('❌ [FRONTEND ERROR]:', error);
+    console.error('❌ [API ERROR]:', error);
     throw error;
   }
 };

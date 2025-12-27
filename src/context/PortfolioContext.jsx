@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-// 1. IMPORT THE CENTRAL CONFIG (Crucial Fix)
+// IMPORT THE CONFIG (This makes it work on Localhost)
 import { API_BASE_URL } from '../config/api';
 
 export const PortfolioContext = createContext();
@@ -13,11 +13,11 @@ export const PortfolioProvider = ({ children }) => {
   // ============================================================
   // CONFIGURATION
   // ============================================================
-  // We use the imported API_BASE_URL so we don't have to copy-paste links.
-  // API_BASE_URL already includes "/api" at the end.
+  // API_BASE_URL comes from src/config/api.js
+  // It is 'http://localhost:5000/api' on your computer.
   
-  const API_URL = `${API_BASE_URL}/portfolio`;
-  const AUTH_URL = `${API_BASE_URL}/auth`;
+  const PORTFOLIO_ENDPOINT = `${API_BASE_URL}/portfolio`;
+  const AUTH_ENDPOINT = `${API_BASE_URL}/auth`;
 
   // ============================================================
   // 1. INITIALIZATION
@@ -33,10 +33,9 @@ export const PortfolioProvider = ({ children }) => {
       setLoading(true);
       setError(null);
 
-      // 🔍 DEBUG LOG: Shows exactly where it is connecting
-      console.log(`🌐 [Context] Fetching Portfolio Data from: ${API_URL}`);
+      console.log(`🌐 [Context] Fetching from: ${PORTFOLIO_ENDPOINT}`);
 
-      const res = await fetch(API_URL);
+      const res = await fetch(PORTFOLIO_ENDPOINT);
       
       if (!res.ok) {
         throw new Error(`Server Error: ${res.status} ${res.statusText}`);
@@ -44,23 +43,21 @@ export const PortfolioProvider = ({ children }) => {
 
       const dbData = await res.json();
       
-      // Safety Check
       if (!dbData || Object.keys(dbData).length === 0) {
         throw new Error("Received empty data from server");
       }
 
       setData(dbData);
       setLoading(false);
-      console.log("✅ [Context] Data Loaded Successfully");
     } catch (err) {
-      console.error("❌ [Context] Failed to fetch data:", err);
+      console.error("Failed to fetch data:", err);
       setError(err.message);
       setLoading(false);
     }
   };
 
   // ============================================================
-  // 2. API HELPER (The "Courier")
+  // 2. API HELPER
   // ============================================================
   const apiCall = async (endpoint, method, body = null) => {
     const token = localStorage.getItem('token');
@@ -79,10 +76,9 @@ export const PortfolioProvider = ({ children }) => {
       };
       if (body) options.body = JSON.stringify(body);
 
-      // Note: endpoint here is relative to /api/portfolio usually
-      const url = `${API_URL}/${endpoint}`;
+      // Note: Endpoint passed here is relative to portfolio (e.g. 'skills')
+      const url = `${PORTFOLIO_ENDPOINT}/${endpoint}`;
       
-      console.log(`🚀 [Context] ${method} Request to: ${url}`);
       const res = await fetch(url, options);
       
       if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
@@ -95,15 +91,11 @@ export const PortfolioProvider = ({ children }) => {
     }
   };
 
-  // ✅ Send Contact Form (Public)
+  // Contact Form (Public)
   const submitContactForm = async (formData) => {
     try {
-      // Use API_BASE_URL directly for contact to match backend route /api/contact
-      const url = `${API_BASE_URL}/contact`; // or /portfolio/contact depending on your backend routes
-      
-      console.log(`📧 [Context] Sending Email to: ${url}`);
-      
-      const res = await fetch(url, {
+      // Uses the global contact endpoint
+      const res = await fetch(`${API_BASE_URL}/portfolio/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -113,7 +105,6 @@ export const PortfolioProvider = ({ children }) => {
         const errData = await res.json();
         throw new Error(errData.error || "Failed to send message");
       }
-      
       return await res.json();
     } catch (error) {
       console.error("Contact form failed:", error);
@@ -126,8 +117,7 @@ export const PortfolioProvider = ({ children }) => {
   // ============================================================
   const login = async (username, password) => {
     try {
-      console.log(`🔐 [Context] Logging in at: ${AUTH_URL}/login`);
-      const res = await fetch(`${AUTH_URL}/login`, {
+      const res = await fetch(`${AUTH_ENDPOINT}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -143,7 +133,6 @@ export const PortfolioProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
-      console.error("Login error:", error);
       return false;
     }
   };
@@ -155,31 +144,26 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // ============================================================
-  // 4. DATA UPDATES
+  // 4. DATA UPDATES (Same logic, condensed)
   // ============================================================
-
-  // Single Sections
   const updateHero = async (d) => { const r = await apiCall('hero', 'PUT', d); if(r) setData(p=>({...p, hero: r})); };
   const updateAbout = async (d) => { const r = await apiCall('about', 'PUT', d); if(r) setData(p=>({...p, about: r})); };
   const updateContact = async (d) => { const r = await apiCall('contact', 'PUT', d); if(r) setData(p=>({...p, contact: r})); };
   const updateSocial = async (d) => { const r = await apiCall('social', 'PUT', d); if(r) setData(p=>({...p, social: r})); };
   const updateTheme = async (d) => { const r = await apiCall('theme', 'PUT', d); if(r) setData(p=>({...p, theme: r})); };
 
-  // Add Items
   const addSkill = async (i) => { const r = await apiCall('skills', 'POST', i); if(r) setData(p=>({...p, skills: [...(p.skills||[]), r]})); };
   const addProject = async (i) => { const r = await apiCall('projects', 'POST', i); if(r) setData(p=>({...p, projects: [...(p.projects||[]), r]})); };
   const addExperience = async (i) => { const r = await apiCall('experience', 'POST', i); if(r) setData(p=>({...p, experience: [...(p.experience||[]), r]})); };
   const addQualification = async (i) => { const r = await apiCall('qualifications', 'POST', i); if(r) setData(p=>({...p, qualifications: [...(p.qualifications||[]), r]})); };
   const addTestimonial = async (i) => { const r = await apiCall('testimonials', 'POST', i); if(r) setData(p=>({...p, testimonials: [...(p.testimonials||[]), r]})); };
 
-  // Update Items
   const updateSkill = async (id, i) => { const r = await apiCall(`skills/${id}`, 'PUT', i); if(r) setData(p=>({...p, skills: p.skills.map(x=>(x._id===id || x.id===id)?r:x)})); };
   const updateProject = async (id, i) => { const r = await apiCall(`projects/${id}`, 'PUT', i); if(r) setData(p=>({...p, projects: p.projects.map(x=>(x._id===id || x.id===id)?r:x)})); };
   const updateExperience = async (id, i) => { const r = await apiCall(`experience/${id}`, 'PUT', i); if(r) setData(p=>({...p, experience: p.experience.map(x=>(x._id===id || x.id===id)?r:x)})); };
   const updateQualification = async (id, i) => { const r = await apiCall(`qualifications/${id}`, 'PUT', i); if(r) setData(p=>({...p, qualifications: p.qualifications.map(x=>(x._id===id || x.id===id)?r:x)})); };
   const updateTestimonial = async (id, i) => { const r = await apiCall(`testimonials/${id}`, 'PUT', i); if(r) setData(p=>({...p, testimonials: p.testimonials.map(x=>(x._id===id || x.id===id)?r:x)})); };
 
-  // Delete Items
   const deleteSkill = async (id) => { const r = await apiCall(`skills/${id}`, 'DELETE'); if(r) setData(p=>({...p, skills: p.skills.filter(x=>x._id!==id && x.id!==id)})); };
   const deleteProject = async (id) => { const r = await apiCall(`projects/${id}`, 'DELETE'); if(r) setData(p=>({...p, projects: p.projects.filter(x=>x._id!==id && x.id!==id)})); };
   const deleteExperience = async (id) => { const r = await apiCall(`experience/${id}`, 'DELETE'); if(r) setData(p=>({...p, experience: p.experience.filter(x=>x._id!==id && x.id!==id)})); };
@@ -191,7 +175,7 @@ export const PortfolioProvider = ({ children }) => {
 
   const value = {
     data, loading, isAdmin, login, logout,
-    submitContactForm, 
+    submitContactForm,
     updateHero, updateAbout, updateContact, updateSocial, updateTheme,
     addQualification, addSkill, addExperience, addProject, addTestimonial,
     updateQualification, updateSkill, updateExperience, updateProject, updateTestimonial,
@@ -200,38 +184,41 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // ============================================================
-  // 5. SAFETY RENDER (Prevent Crashes)
+  // 5. SAFETY RENDER (Bootstrap / Pure CSS)
   // ============================================================
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="d-flex vh-100 vw-100 align-items-center justify-content-center bg-light">
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
       </div>
     );
   }
 
-  // Error Screen for Mobile/Network Issues
+  // Error Screen
   if (error || !data) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center p-6 text-center bg-gray-50">
-        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Connection Failed</h2>
-          <p className="text-gray-600 mb-6">
-            Could not connect to the Backend Server.
-          </p>
-          
-          <div className="bg-gray-100 p-4 rounded mb-6 text-left text-sm font-mono text-gray-700">
-            Current Target:<br/>
-            <strong>{API_BASE_URL}</strong>
-          </div>
+      <div className="d-flex vh-100 flex-column align-items-center justify-content-center bg-light p-4">
+        <div className="card shadow-lg p-4" style={{ maxWidth: '450px', width: '100%' }}>
+          <div className="card-body text-center">
+            <h2 className="text-danger mb-3">Connection Failed</h2>
+            <p className="text-muted mb-3">
+              Could not connect to the Backend Server.
+            </p>
+            
+            <div className="alert alert-secondary text-start font-monospace small mb-4">
+              Target: <strong>{API_BASE_URL}</strong>
+            </div>
 
-          <button 
-            onClick={() => window.location.reload()} 
-            className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded hover:bg-indigo-700 transition"
-          >
-            Retry Connection
-          </button>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="btn btn-primary w-100"
+            >
+              Retry Connection
+            </button>
+          </div>
         </div>
       </div>
     );
