@@ -16,58 +16,56 @@ export const Qualifications = () => {
   return (
     <section id="qualifications" className="section" style={{ backgroundColor: 'var(--color-surface)' }}>
       <div className="container">
+        
+        {/* Section Header */}
         <div className="text-center mb-5">
-          <h2>Education & Qualifications</h2>
-          <p style={{ color: 'var(--color-text-secondary)', maxWidth: '600px', margin: '0 auto' }}>
-            My educational background and certifications
+          <h2 className="display-6 fw-bold mb-3">Education & Qualifications</h2>
+          <p className="lead mx-auto" style={{ maxWidth: '600px', color: 'var(--color-text-secondary)' }}>
+            My educational background, degrees, and certifications.
           </p>
         </div>
 
         <div className="row justify-content-center">
           <div className="col-lg-8">
-            <div className="timeline">
+            <div className="d-flex flex-column gap-4">
+              
               {qualifications.map((qual, index) => (
-                <div key={qual._id || index} className="timeline-item">
-                  <div className="card card-padding-lg">
-                    <div className="d-flex align-items-start gap-3 mb-3">
-                      <div style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: 'var(--radius-md)',
-                        backgroundColor: 'var(--color-primary)',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
+                <div key={qual._id || index} className="card border-0 shadow-sm">
+                  <div className="card-body p-4">
+                    
+                    <div className="d-flex align-items-start gap-3">
+                      
+                      {/* Icon Box */}
+                      <div className="d-flex align-items-center justify-content-center rounded bg-primary text-white flex-shrink-0" style={{ width: '48px', height: '48px' }}>
                         <GraduationCap size={24} />
                       </div>
                       
-                      <div style={{ flex: 1 }}>
-                        <h4 className="mb-2">{qual.title}</h4>
-                        <h6 style={{ color: 'var(--color-primary)', marginBottom: 'var(--spacing-sm)' }}>
+                      {/* Content */}
+                      <div className="flex-grow-1">
+                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                          <h4 className="h5 fw-bold m-0">{qual.title}</h4>
+                          
+                          {/* Date */}
+                          <div className="text-muted small d-flex align-items-center gap-1">
+                            <Calendar size={14} />
+                            <span>{formatDate(qual.startDate)} - {formatDate(qual.endDate)}</span>
+                          </div>
+                        </div>
+                        
+                        <h6 className="text-primary fw-bold mb-3">
                           {qual.institution}
                         </h6>
                         
-                        <div className="d-flex align-items-center gap-2 mb-3" style={{ 
-                          color: 'var(--color-text-secondary)',
-                          fontSize: '0.875rem'
-                        }}>
-                          <Calendar size={16} />
-                          <span>
-                            {formatDate(qual.startDate)} - {formatDate(qual.endDate)}
-                          </span>
-                        </div>
-                        
-                        <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
+                        <p className="mb-0 text-muted">
                           {qual.description}
                         </p>
                       </div>
+
                     </div>
                   </div>
                 </div>
               ))}
+
             </div>
           </div>
         </div>

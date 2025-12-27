@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Save } from 'lucide-react';
-import { Card } from '../Card';
-import { Input } from '../Input';
-import { Button } from '../Button';
+import { Save, Mail, MapPin, Phone, Globe, Linkedin, Github, Twitter } from 'lucide-react';
+// KEEP HOOKS
 import { useToast } from '../Toast';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
 export const ContactAdmin = () => {
   const { data, updateContact, updateSocial } = usePortfolio();
   const toast = useToast();
-  const [contactData, setContactData] = useState(data.contact);
-  const [socialData, setSocialData] = useState(data.social);
+  
+  // Safe Initialization
+  const [contactData, setContactData] = useState(data.contact || { email: '', phone: '', location: '' });
+  const [socialData, setSocialData] = useState(data.social || { github: '', linkedin: '', twitter: '', portfolio: '' });
 
   const handleSaveContact = () => {
     updateContact(contactData);
@@ -23,120 +23,155 @@ export const ContactAdmin = () => {
   };
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="mb-2">Contact Information</h2>
-        <p className="text-[var(--color-text-secondary)] m-0">
-          Manage your contact details and social media links
-        </p>
+    <div className="container-fluid p-0">
+      
+      {/* HEADER */}
+      <div className="mb-4">
+        <h2 className="h3 mb-1">Contact & Social</h2>
+        <p className="text-muted small">Manage how people reach you and your social profiles.</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card padding="lg">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="m-0">Contact Details</h4>
-            <Button variant="primary" size="sm" onClick={handleSaveContact}>
-              <Save size={16} />
-              Save
-            </Button>
+      <div className="row g-4">
+        
+        {/* LEFT COLUMN: CONTACT INFO */}
+        <div className="col-lg-6">
+          <div className="card shadow-sm border-0 h-100">
+            <div className="card-header bg-white d-flex justify-content-between align-items-center py-3">
+              <h6 className="m-0 fw-bold d-flex align-items-center gap-2">
+                <Mail size={18} /> Contact Details
+              </h6>
+              <button className="btn btn-primary btn-sm d-flex align-items-center gap-1" onClick={handleSaveContact}>
+                <Save size={16} /> Save
+              </button>
+            </div>
+            
+            <div className="card-body">
+              {/* Email */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">Email Address</label>
+                <div className="input-group">
+                  <span className="input-group-text"><Mail size={16}/></span>
+                  <input
+                    type="email"
+                    className="form-control"
+                    value={contactData.email}
+                    onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
+                    placeholder="you@example.com"
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">Phone Number</label>
+                <div className="input-group">
+                  <span className="input-group-text"><Phone size={16}/></span>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    value={contactData.phone}
+                    onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
+                    placeholder="+1 (555) 000-0000"
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">Location</label>
+                <div className="input-group">
+                  <span className="input-group-text"><MapPin size={16}/></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={contactData.location}
+                    onChange={(e) => setContactData({ ...contactData, location: e.target.value })}
+                    placeholder="New York, USA"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              value={contactData.email}
-              onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
-              placeholder="contact.email"
-            />
+        {/* RIGHT COLUMN: SOCIAL LINKS */}
+        <div className="col-lg-6">
+          <div className="card shadow-sm border-0 h-100">
+            <div className="card-header bg-white d-flex justify-content-between align-items-center py-3">
+              <h6 className="m-0 fw-bold d-flex align-items-center gap-2">
+                <Globe size={18} /> Social Links
+              </h6>
+              <button className="btn btn-primary btn-sm d-flex align-items-center gap-1" onClick={handleSaveSocial}>
+                <Save size={16} /> Save
+              </button>
+            </div>
 
-            <Input
-              label="Phone"
-              type="tel"
-              value={contactData.phone}
-              onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
-              placeholder="contact.phone"
-            />
+            <div className="card-body">
+              
+              {/* GitHub */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">GitHub URL</label>
+                <div className="input-group">
+                  <span className="input-group-text"><Github size={16}/></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={socialData.github}
+                    onChange={(e) => setSocialData({ ...socialData, github: e.target.value })}
+                    placeholder="https://github.com/username"
+                  />
+                </div>
+              </div>
 
-            <Input
-              label="Location"
-              value={contactData.location}
-              onChange={(e) => setContactData({ ...contactData, location: e.target.value })}
-              placeholder="contact.location"
-            />
+              {/* LinkedIn */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">LinkedIn URL</label>
+                <div className="input-group">
+                  <span className="input-group-text"><Linkedin size={16}/></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={socialData.linkedin}
+                    onChange={(e) => setSocialData({ ...socialData, linkedin: e.target.value })}
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+              </div>
+
+              {/* Twitter */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">Twitter / X URL</label>
+                <div className="input-group">
+                  <span className="input-group-text"><Twitter size={16}/></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={socialData.twitter}
+                    onChange={(e) => setSocialData({ ...socialData, twitter: e.target.value })}
+                    placeholder="https://twitter.com/username"
+                  />
+                </div>
+              </div>
+
+              {/* Website */}
+              <div className="mb-3">
+                <label className="form-label fw-bold small">Personal Website</label>
+                <div className="input-group">
+                  <span className="input-group-text"><Globe size={16}/></span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={socialData.portfolio}
+                    onChange={(e) => setSocialData({ ...socialData, portfolio: e.target.value })}
+                    placeholder="https://mysite.com"
+                  />
+                </div>
+              </div>
+
+            </div>
           </div>
+        </div>
 
-          <div className="mt-6 p-4 bg-[var(--color-bg)] rounded-lg">
-            <h6 className="mb-2">Data Structure</h6>
-            <pre className="text-xs text-[var(--color-text-secondary)] overflow-x-auto m-0">
-{`{
-  "contact": {
-    "email": "string",
-    "phone": "string",
-    "location": "string"
-  }
-}`}
-            </pre>
-          </div>
-        </Card>
-
-        <Card padding="lg">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="m-0">Social Links</h4>
-            <Button variant="primary" size="sm" onClick={handleSaveSocial}>
-              <Save size={16} />
-              Save
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            <Input
-              label="GitHub"
-              value={socialData.github}
-              onChange={(e) => setSocialData({ ...socialData, github: e.target.value })}
-              placeholder="social.github"
-              helperText="Full GitHub profile URL"
-            />
-
-            <Input
-              label="LinkedIn"
-              value={socialData.linkedin}
-              onChange={(e) => setSocialData({ ...socialData, linkedin: e.target.value })}
-              placeholder="social.linkedin"
-              helperText="Full LinkedIn profile URL"
-            />
-
-            <Input
-              label="Twitter"
-              value={socialData.twitter}
-              onChange={(e) => setSocialData({ ...socialData, twitter: e.target.value })}
-              placeholder="social.twitter"
-              helperText="Full Twitter profile URL"
-            />
-
-            <Input
-              label="Portfolio Website"
-              value={socialData.portfolio}
-              onChange={(e) => setSocialData({ ...socialData, portfolio: e.target.value })}
-              placeholder="social.portfolio"
-              helperText="Your personal website URL"
-            />
-          </div>
-
-          <div className="mt-6 p-4 bg-[var(--color-bg)] rounded-lg">
-            <h6 className="mb-2">Data Structure</h6>
-            <pre className="text-xs text-[var(--color-text-secondary)] overflow-x-auto m-0">
-{`{
-  "social": {
-    "github": "url",
-    "linkedin": "url",
-    "twitter": "url",
-    "portfolio": "url"
-  }
-}`}
-            </pre>
-          </div>
-        </Card>
       </div>
     </div>
   );

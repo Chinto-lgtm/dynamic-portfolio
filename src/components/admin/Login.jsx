@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
-import { Card } from '../Card';
-import { Input } from '../Input';
-import { Button } from '../Button';
-import { usePortfolio } from '../../hooks/usePortfolio';
+// IMPORT CONTEXT
+import { usePortfolio } from '../../context/PortfolioContext';
 
 export const Login = () => {
   const { login } = usePortfolio();
@@ -12,65 +10,90 @@ export const Login = () => {
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = login(credentials.username, credentials.password);
-    
-    if (!success) {
-      setError('Invalid credentials. Try username: admin, password: admin123');
+    setLoading(true);
+    setError('');
+
+    try {
+      // Assuming login is an async function in your context
+      const success = await login(credentials.username, credentials.password);
+      
+      if (!success) {
+        setError('Invalid credentials. (Try: admin / admin123)');
+      }
+    } catch (err) {
+      setError('Login failed. Please check your server connection.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-[var(--color-bg)] to-[var(--color-surface)]">
-      <Card padding="lg" className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-primary)]/10 mb-4">
-            <Lock size={32} className="text-[var(--color-primary)]" />
-          </div>
-          <h2 className="mb-2">Admin Login</h2>
-          <p className="text-[var(--color-text-secondary)] m-0">
-            Sign in to manage your portfolio
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Username"
-            type="text"
-            value={credentials.username}
-            onChange={(e) => {
-              setCredentials({ ...credentials, username: e.target.value });
-              setError('');
-            }}
-            placeholder="Enter username"
-            required
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            value={credentials.password}
-            onChange={(e) => {
-              setCredentials({ ...credentials, password: e.target.value });
-              setError('');
-            }}
-            placeholder="Enter password"
-            required
-          />
-
-          {error && (
-            <div className="p-3 bg-[var(--color-error)]/10 text-[var(--color-error)] rounded-lg text-sm">
-              {error}
+    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div className="card shadow-lg border-0" style={{ maxWidth: '400px', width: '100%' }}>
+        <div className="card-body p-5">
+          
+          {/* Header */}
+          <div className="text-center mb-4">
+            <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 mb-3" style={{ width: '64px', height: '64px' }}>
+              <Lock size={32} className="text-primary" />
             </div>
-          )}
+            <h2 className="h4 fw-bold mb-1">Admin Login</h2>
+            <p className="text-muted small">Sign in to manage your portfolio</p>
+          </div>
 
-          <Button type="submit" variant="primary" size="lg" className="w-full">
-            Sign In
-          </Button>
-        </form>
-      </Card>
+          {/* Form */}
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <label className="form-label fw-bold small">Username</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Enter username"
+                value={credentials.username}
+                onChange={(e) => {
+                  setCredentials({ ...credentials, username: e.target.value });
+                  setError('');
+                }}
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label fw-bold small">Password</label>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Enter password"
+                value={credentials.password}
+                onChange={(e) => {
+                  setCredentials({ ...credentials, password: e.target.value });
+                  setError('');
+                }}
+                required
+              />
+            </div>
+
+            {error && (
+              <div className="alert alert-danger py-2 small text-center" role="alert">
+                {error}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              className="btn btn-primary w-100 py-2 fw-bold"
+              disabled={loading}
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+
+        </div>
+      </div>
     </div>
   );
 };

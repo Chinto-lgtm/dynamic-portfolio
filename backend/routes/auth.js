@@ -3,7 +3,26 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
 
-// Login
+// ==========================================
+// 🛡️ SECURITY MIDDLEWARE (Internal)
+// ==========================================
+// This ensures only someone with a valid token can change the password
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Access denied. No token provided.' });
+
+  try {
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = verified;
+    next();
+  } catch (err) {
+    res.status(400).json({ error: 'Invalid Token' });
+  }
+};
+
+// ==========================================
+// 1. LOGIN ROUTE
+// ==========================================
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -30,7 +49,33 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Register (Optional - for creating first admin)
+// ==========================================
+// 2. CHANGE PASSWORD ROUTE (New!)
+// ==========================================
+router.put('/change-password', verifyToken, async (req, res) => {
+  try {
+    const { username, newPassword } = req.body;
+
+    // 1. Find the user
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // 2. Update the password
+    // (The User model's 'pre-save' hook will automatically hash this)
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// 3. REGISTER ROUTE (Optional)
+// ==========================================
 router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;

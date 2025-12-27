@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
-import { Card } from '../Card';
-import { Input, Textarea } from '../Input';
-import { Button } from '../Button';
-import { Modal, ConfirmModal } from '../Modal';
+import { Plus, Edit2, Trash2, MessageSquare, Quote } from 'lucide-react';
+// KEEP HOOKS
 import { useToast } from '../Toast';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
 export const TestimonialsAdmin = () => {
   const { data, addTestimonial, updateTestimonial, deleteTestimonial } = usePortfolio();
   const toast = useToast();
+  
+  // State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  
   const [formData, setFormData] = useState({
     name: '',
     role: '',
@@ -21,6 +21,7 @@ export const TestimonialsAdmin = () => {
     avatar: ''
   });
 
+  // --- LOGIC ---
   const resetForm = () => {
     setFormData({
       name: '',
@@ -61,164 +62,211 @@ export const TestimonialsAdmin = () => {
     resetForm();
   };
 
-  const handleDelete = (id) => {
-    deleteTestimonial(id);
-    toast.success('Testimonial deleted successfully!');
-    setDeleteConfirm(null);
+  const handleDelete = () => {
+    if (deleteConfirm) {
+      deleteTestimonial(deleteConfirm._id);
+      toast.success('Testimonial deleted successfully!');
+      setDeleteConfirm(null);
+    }
   };
 
+  // --- RENDER ---
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="container-fluid p-0">
+      
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-2">Testimonials</h2>
-          <p className="text-[var(--color-text-secondary)] m-0">
-            Manage client and colleague testimonials
-          </p>
+          <h2 className="h3 mb-1">Testimonials</h2>
+          <p className="text-muted small">Manage client and colleague reviews.</p>
         </div>
-        <Button variant="primary" onClick={handleAdd}>
-          <Plus size={20} />
-          Add Testimonial
-        </Button>
+        <button className="btn btn-primary d-flex align-items-center gap-2" onClick={handleAdd}>
+          <Plus size={18} /> Add Testimonial
+        </button>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* GRID LAYOUT */}
+      <div className="row g-4">
         {data.testimonials.map((testimonial) => (
-          <Card key={testimonial._id} padding="lg">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <img
-                  src={testimonial.avatar}
-                  alt={testimonial.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100&h=100&fit=crop';
-                  }}
-                />
-                <div>
-                  <h6 className="m-0">{testimonial.name}</h6>
-                  <p className="text-sm text-[var(--color-text-secondary)] m-0">
-                    {testimonial.role}
+          <div key={testimonial._id} className="col-md-6 col-lg-4">
+            <div className="card shadow-sm border-0 h-100">
+              <div className="card-body d-flex flex-column">
+                
+                {/* Top Section: Avatar & Info */}
+                <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div className="d-flex align-items-center gap-3">
+                    <img
+                      src={testimonial.avatar}
+                      alt={testimonial.name}
+                      className="rounded-circle border"
+                      style={{ width: '48px', height: '48px', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/100?text=User';
+                      }}
+                    />
+                    <div>
+                      <h6 className="fw-bold m-0">{testimonial.name}</h6>
+                      <p className="text-muted small m-0">{testimonial.role}</p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="d-flex gap-1">
+                    <button className="btn btn-sm btn-light text-primary" onClick={() => handleEdit(testimonial)}>
+                      <Edit2 size={16} />
+                    </button>
+                    <button className="btn btn-sm btn-light text-danger" onClick={() => setDeleteConfirm(testimonial)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-grow-1 position-relative">
+                  <Quote size={20} className="text-primary opacity-25 position-absolute top-0 start-0" />
+                  <p className="small text-muted fst-italic ps-4 mb-2">
+                    "{testimonial.content}"
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleEdit(testimonial)}
-                  className="p-2 hover:bg-[var(--color-bg)] rounded-lg transition-colors"
-                >
-                  <Edit2 size={16} className="text-[var(--color-primary)]" />
-                </button>
-                <button
-                  onClick={() => setDeleteConfirm(testimonial)}
-                  className="p-2 hover:bg-[var(--color-bg)] rounded-lg transition-colors"
-                >
-                  <Trash2 size={16} className="text-[var(--color-error)]" />
-                </button>
+
+                {/* Company Footer */}
+                {testimonial.company && (
+                  <div className="mt-3 pt-2 border-top">
+                    <span className="badge bg-light text-dark border">
+                      {testimonial.company}
+                    </span>
+                  </div>
+                )}
+
               </div>
             </div>
-
-            <p className="text-sm text-[var(--color-text-secondary)] italic mb-2 m-0">
-              "{testimonial.content}"
-            </p>
-            <p className="text-sm text-[var(--color-primary)] m-0">
-              {testimonial.company}
-            </p>
-          </Card>
+          </div>
         ))}
 
         {data.testimonials.length === 0 && (
-          <Card padding="lg" className="md:col-span-2 lg:col-span-3 text-center">
-            <p className="text-[var(--color-text-secondary)] m-0">
-              No testimonials added yet. Click "Add Testimonial" to get started.
-            </p>
-          </Card>
+          <div className="col-12 text-center py-5 text-muted">
+            <p>No testimonials added yet. Click "Add Testimonial" to start.</p>
+          </div>
         )}
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          resetForm();
-        }}
-        title={editingItem ? 'Edit Testimonial' : 'Add Testimonial'}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleSave}>
-              {editingItem ? 'Update' : 'Add'}
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <Input
-            label="Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="testimonials[].name"
-            required
-          />
-
-          <Input
-            label="Role"
-            value={formData.role}
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-            placeholder="testimonials[].role"
-          />
-
-          <Input
-            label="Company"
-            value={formData.company}
-            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-            placeholder="testimonials[].company"
-          />
-
-          <Textarea
-            label="Testimonial Content"
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-            placeholder="testimonials[].content"
-            rows={5}
-            required
-          />
-
-          <div>
-            <Input
-              label="Avatar URL"
-              value={formData.avatar}
-              onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-              placeholder="testimonials[].avatar"
-              helperText="Image URL for person's photo"
-            />
-            {formData.avatar && (
-              <div className="mt-2">
-                <img
-                  src={formData.avatar}
-                  alt="Avatar preview"
-                  className="w-16 h-16 rounded-full object-cover"
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=100&h=100&fit=crop';
-                  }}
-                />
+      {/* --- ADD/EDIT MODAL --- */}
+      {isModalOpen && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{editingItem ? 'Edit Testimonial' : 'Add Testimonial'}</h5>
+                <button type="button" className="btn-close" onClick={() => setIsModalOpen(false)}></button>
               </div>
-            )}
+              
+              <div className="modal-body">
+                {/* Name */}
+                <div className="mb-3">
+                  <label className="form-label fw-bold small">Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g. John Doe"
+                    required
+                  />
+                </div>
+
+                {/* Role & Company */}
+                <div className="row g-3 mb-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold small">Role</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      placeholder="e.g. CEO"
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold small">Company</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formData.company}
+                      onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      placeholder="e.g. Tech Corp"
+                    />
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="mb-3">
+                  <label className="form-label fw-bold small">Testimonial Content</label>
+                  <textarea
+                    className="form-control"
+                    rows="4"
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    placeholder="What did they say?"
+                    required
+                  ></textarea>
+                </div>
+
+                {/* Avatar */}
+                <div className="mb-3">
+                  <label className="form-label fw-bold small">Avatar URL</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={formData.avatar}
+                    onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                    placeholder="https://..."
+                  />
+                  {formData.avatar && (
+                    <div className="mt-2">
+                       <img 
+                         src={formData.avatar} 
+                         alt="Preview" 
+                         className="rounded-circle border" 
+                         style={{ width: '50px', height: '50px', objectFit: 'cover' }} 
+                         onError={(e) => e.target.style.display = 'none'}
+                       />
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="button" className="btn btn-primary" onClick={handleSave}>
+                   {editingItem ? 'Update' : 'Add'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
-      <ConfirmModal
-        isOpen={deleteConfirm !== null}
-        onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => handleDelete(deleteConfirm._id)}
-        title="Delete Testimonial"
-        message={`Are you sure you want to delete the testimonial from "${deleteConfirm?.name}"?`}
-        confirmText="Delete"
-        variant="danger"
-      />
+      {/* --- DELETE MODAL --- */}
+      {deleteConfirm && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header border-0 pb-0">
+                <h5 className="modal-title text-danger">Delete Testimonial?</h5>
+              </div>
+              <div className="modal-body">
+                <p>Are you sure you want to delete the testimonial from <strong>{deleteConfirm.name}</strong>?</p>
+              </div>
+              <div className="modal-footer border-0">
+                <button className="btn btn-light" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                <button className="btn btn-danger" onClick={handleDelete}>Delete Permanently</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

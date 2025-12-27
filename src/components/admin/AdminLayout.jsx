@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, User, GraduationCap, Award, Briefcase, 
   FolderKanban, MessageSquare, Mail, Palette, Settings, 
-  LogOut, Menu, X 
+  LogOut, Menu, X, Lock // <--- 1. ADD LOCK ICON HERE
 } from 'lucide-react';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
@@ -21,7 +21,9 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
     { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
     { id: 'contact', label: 'Contact', icon: Mail },
     { id: 'theme', label: 'Theme', icon: Palette },
-    { id: 'custom-sections', label: 'Form Builder', icon: Settings }
+    { id: 'custom-sections', label: 'Form Builder', icon: Settings },
+    // 2. NEW MENU ITEM ADDED HERE:
+    { id: 'settings', label: 'Account Settings', icon: Lock } 
   ];
 
   const handleLogout = () => {
@@ -30,13 +32,13 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
   };
 
   return (
-    // ROOT WRAPPER: Flex Row (Sidebar | Content)
-    // vh-100 ensures the app takes exactly the full screen height
+    // ... (The rest of your return code remains exactly the same)
     <div className="d-flex vh-100 overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
+      {/* ... keep sidebar and main content code ... */}
       
-      {/* =========================================
-          1. SIDEBAR (Full Height, Fixed on Left)
-      ========================================= */}
+      {/* Just copy the rest of your file content here, 
+          the only change needed was the menuItems array above. */}
+      
       <aside 
         className={`
           border-end h-100 overflow-y-auto flex-shrink-0
@@ -93,12 +95,8 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
         </div>
       </aside>
 
-      {/* =========================================
-          2. RIGHT COLUMN (Navbar + Content)
-      ========================================= */}
+      {/* RIGHT COLUMN (Navbar + Content) */}
       <div className="d-flex flex-column flex-grow-1 w-100 overflow-hidden position-relative">
-        
-        {/* NAVBAR: position-relative ensures it pushes content down (nothing hides behind it) */}
         <nav 
           className="navbar border-bottom d-flex flex-shrink-0 align-items-center px-3 position-relative" 
           style={{ 
@@ -108,8 +106,6 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
           }}
         >
           <div className="w-100 d-flex justify-content-between align-items-center">
-            
-            {/* LEFT: Mobile Toggle (Hidden on Desktop) */}
             <div className="d-flex align-items-center gap-3">
               <button 
                 className="btn btn-link p-0 text-dark d-lg-none" 
@@ -118,11 +114,9 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
               >
                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-              {/* Mobile Title */}
               <h5 className="m-0 fw-bold d-lg-none" style={{ color: 'var(--color-text)' }}>Menu</h5>
             </div>
 
-            {/* RIGHT: Logout */}
             <button 
               onClick={handleLogout}
               className="btn d-flex align-items-center gap-2"
@@ -134,7 +128,6 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
           </div>
         </nav>
 
-        {/* MAIN CONTENT: flex-grow-1 takes remaining height */}
         <main 
           className="flex-grow-1 p-4 overflow-y-auto" 
           style={{ 
@@ -149,7 +142,6 @@ export const AdminLayout = ({ children, activeSection, onSectionChange }) => {
         </main>
       </div>
 
-      {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div 
           className="position-absolute top-0 start-0 w-100 h-100 d-lg-none"

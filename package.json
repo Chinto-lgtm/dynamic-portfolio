@@ -4,9 +4,10 @@
   "description": "Dynamic portfolio website with comprehensive admin dashboard",
   "private": true,
   "dependencies": {
+    "bootstrap": "^5.3.8",
+    "lucide-react": "^0.294.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "lucide-react": "^0.294.0"
+    "react-dom": "^18.2.0"
   },
   "scripts": {
     "start": "react-scripts start",

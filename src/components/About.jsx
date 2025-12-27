@@ -9,26 +9,34 @@ export const About = () => {
     <section id="about" className="section" style={{ backgroundColor: 'var(--color-surface)' }}>
       <div className="container">
         <div className="row align-items-center">
-          {/* Image Column */}
-          <div className="col-lg-5 mb-4 mb-lg-0">
-            <div style={{ position: 'relative', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
+          
+          {/* IMAGE COLUMN 
+             1. Added 'text-center' to center the image in the column.
+             2. Added 'about-image' class to the div (links to globals.css).
+          */}
+          <div className="col-lg-5 mb-4 mb-lg-0 text-center">
+            <div className="about-image" style={{ position: 'relative', display: 'inline-block' }}>
               <img
                 src={about.image}
                 alt="About"
                 className="img-fluid"
                 style={{ 
-                  width: '100%',
+                  // If globals.css didn't work, this is a safety net:
+                  maxWidth: '300px', 
                   height: 'auto',
-                  borderRadius: 'var(--radius-lg)',
-                  boxShadow: 'var(--shadow-lg)'
+                  borderRadius: '50%', // Circle shape
+                  border: '4px solid var(--color-primary)',
+                  boxShadow: 'var(--shadow-lg)',
+                  objectFit: 'cover',
+                  aspectRatio: '1/1' // Ensures it stays a perfect square/circle
                 }}
               />
             </div>
           </div>
 
-          {/* Content Column */}
+          {/* CONTENT COLUMN */}
           <div className="col-lg-7">
-            <div style={{ paddingLeft: '0', paddingRight: '0' }}>
+            <div className="ps-lg-4"> {/* Added padding-start for spacing on desktop */}
               <h2 className="mb-4">{about.heading}</h2>
               
               <div style={{ color: 'var(--color-text)', lineHeight: '1.8' }}>
@@ -40,6 +48,7 @@ export const About = () => {
               </div>
             </div>
           </div>
+          
         </div>
       </div>
     </section>

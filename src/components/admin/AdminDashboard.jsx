@@ -6,10 +6,10 @@ import {
   FolderKanban,
   MessageSquare,
   TrendingUp,
-  Download
+  Download,
+  ExternalLink
 } from 'lucide-react';
-import { Card } from '../Card';
-import { Button } from '../Button';
+// KEEP HOOKS
 import { usePortfolio } from '../../hooks/usePortfolio';
 import { exportPortfolioData } from '../../utils/exportData';
 import { useToast } from '../Toast';
@@ -27,113 +27,145 @@ export const AdminDashboard = () => {
     }
   };
 
+  // Safely handle if data arrays are undefined initially
+  const getCount = (arr) => arr ? arr.length : 0;
+
   const stats = [
     {
       label: 'Qualifications',
-      value: data.qualifications.length,
+      value: getCount(data.qualifications),
       icon: GraduationCap,
-      color: 'text-blue-500'
+      color: 'text-primary', // Bootstrap Blue
+      bg: 'bg-primary'
     },
     {
       label: 'Skills',
-      value: data.skills.length,
+      value: getCount(data.skills),
       icon: Award,
-      color: 'text-green-500'
+      color: 'text-success', // Bootstrap Green
+      bg: 'bg-success'
     },
     {
       label: 'Experience',
-      value: data.experience.length,
+      value: getCount(data.experience),
       icon: Briefcase,
-      color: 'text-purple-500'
+      color: 'text-info', // Bootstrap Cyan
+      bg: 'bg-info'
     },
     {
       label: 'Projects',
-      value: data.projects.length,
+      value: getCount(data.projects),
       icon: FolderKanban,
-      color: 'text-orange-500'
+      color: 'text-warning', // Bootstrap Yellow/Orange
+      bg: 'bg-warning'
     },
     {
       label: 'Testimonials',
-      value: data.testimonials.length,
+      value: getCount(data.testimonials),
       icon: MessageSquare,
-      color: 'text-pink-500'
+      color: 'text-danger', // Bootstrap Red
+      bg: 'bg-danger'
     },
     {
       label: 'Custom Sections',
-      value: data.customSections.length,
+      value: getCount(data.customSections),
       icon: TrendingUp,
-      color: 'text-cyan-500'
+      color: 'text-secondary', // Bootstrap Grey
+      bg: 'bg-secondary'
     }
   ];
 
   return (
-    <div>
-      <div className="mb-8">
-        <h2 className="mb-2">Dashboard Overview</h2>
-        <p className="text-[var(--color-text-secondary)] m-0">
-          Welcome back! Here's a summary of your portfolio content.
-        </p>
+    <div className="container-fluid p-0">
+      
+      {/* HEADER */}
+      <div className="mb-4">
+        <h2 className="h3 mb-1">Dashboard Overview</h2>
+        <p className="text-muted">Welcome back! Here is what is happening in your portfolio.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {/* STATS GRID */}
+      <div className="row g-4 mb-4">
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index} padding="lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-1 m-0">
-                    {stat.label}
-                  </p>
-                  <h2 className="m-0">{stat.value}</h2>
-                </div>
-                <div className={`w-12 h-12 rounded-lg bg-[var(--color-bg)] flex items-center justify-center ${stat.color}`}>
-                  <Icon size={24} />
+            <div key={index} className="col-12 col-md-6 col-lg-4">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="text-muted mb-1 small text-uppercase fw-bold">{stat.label}</h6>
+                    <h2 className="mb-0 fw-bold">{stat.value}</h2>
+                  </div>
+                  <div className={`rounded-circle p-3 bg-opacity-10 ${stat.bg}`}>
+                    <Icon size={24} className={stat.color} />
+                  </div>
                 </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card padding="lg">
-          <h4 className="mb-4">Quick Actions</h4>
-          <div className="space-y-2">
-            <a
-              href="/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block px-4 py-3 bg-[var(--color-bg)] rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
-            >
-              View Live Portfolio →
-            </a>
-            <Button
-              onClick={handleExport}
-              className="w-full text-left px-4 py-3 bg-[var(--color-bg)] rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
-            >
-              Export Data as JSON
-            </Button>
+      {/* BOTTOM SECTION */}
+      <div className="row g-4">
+        
+        {/* QUICK ACTIONS */}
+        <div className="col-md-6">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white fw-bold py-3">
+              Quick Actions
+            </div>
+            <div className="card-body">
+              <div className="d-grid gap-3">
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-outline-primary d-flex align-items-center justify-content-center gap-2 py-2"
+                >
+                  <ExternalLink size={18} /> View Live Portfolio
+                </a>
+                
+                <button
+                  onClick={handleExport}
+                  className="btn btn-light border d-flex align-items-center justify-content-center gap-2 py-2"
+                >
+                  <Download size={18} /> Export Data as JSON
+                </button>
+              </div>
+            </div>
           </div>
-        </Card>
+        </div>
 
-        <Card padding="lg">
-          <h4 className="mb-4">Recent Updates</h4>
-          <div className="space-y-3 text-sm text-[var(--color-text-secondary)]">
-            <p className="m-0">
-              • Portfolio data is stored locally in your browser
-            </p>
-            <p className="m-0">
-              • Changes are saved automatically
-            </p>
-            <p className="m-0">
-              • Use the sections menu to edit content
-            </p>
-            <p className="m-0">
-              • Theme changes apply in real-time
-            </p>
+        {/* SYSTEM STATUS */}
+        <div className="col-md-6">
+          <div className="card border-0 shadow-sm h-100">
+            <div className="card-header bg-white fw-bold py-3">
+              System Status
+            </div>
+            <div className="card-body">
+              <ul className="list-group list-group-flush small text-muted">
+                <li className="list-group-item px-0 d-flex align-items-center gap-2">
+                  <span className="badge bg-success rounded-pill">&nbsp;</span>
+                  Database Connected (MongoDB)
+                </li>
+                <li className="list-group-item px-0 d-flex align-items-center gap-2">
+                  <span className="badge bg-success rounded-pill">&nbsp;</span>
+                  API is Online
+                </li>
+                <li className="list-group-item px-0 d-flex align-items-center gap-2">
+                  <span className="badge bg-success rounded-pill">&nbsp;</span>
+                  Changes Auto-Save
+                </li>
+                <li className="list-group-item px-0 d-flex align-items-center gap-2">
+                  <span className="badge bg-primary rounded-pill">&nbsp;</span>
+                  Theme System Active
+                </li>
+              </ul>
+            </div>
           </div>
-        </Card>
+        </div>
+
       </div>
     </div>
   );

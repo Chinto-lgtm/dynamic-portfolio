@@ -12,7 +12,9 @@ import { Footer } from '../components/Footer';
 
 export const Portfolio = () => {
   return (
-    <div className="min-h-screen">
+    // "min-vh-100" is Bootstrap for "min-height: 100vh"
+    // "d-flex flex-column" ensures the footer stays at the bottom if content is short
+    <div className="min-vh-100 d-flex flex-column">
       <Navbar />
       <Hero />
       <About />

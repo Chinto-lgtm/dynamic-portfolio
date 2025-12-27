@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from './Card';
+// 1. Removed custom Card import
 import { usePortfolio } from '../hooks/usePortfolio';
 
 const SkillBar = ({ skill, inView }) => {
@@ -7,22 +7,31 @@ const SkillBar = ({ skill, inView }) => {
 
   useEffect(() => {
     if (inView) {
-      setTimeout(() => setWidth(skill.level), 100);
+      // Small delay to ensure the transition is visible
+      setTimeout(() => setWidth(skill.level), 200);
     }
   }, [inView, skill.level]);
 
   return (
-    <div className="skill-bar-container">
-      <div className="skill-bar-header">
-        <span style={{ fontWeight: '500' }}>{skill.label}</span>
-        <span style={{ color: 'var(--color-primary)', fontWeight: '600' }}>
-          {skill.level}%
-        </span>
+    <div className="mb-4">
+      {/* Label & Percentage */}
+      <div className="d-flex justify-content-between align-items-center mb-1">
+        <span className="fw-bold text-dark">{skill.label}</span>
+        <span className="fw-bold text-primary">{skill.level}%</span>
       </div>
-      <div className="skill-bar-bg">
+      
+      {/* Bootstrap Progress Bar */}
+      <div className="progress" style={{ height: '10px', backgroundColor: 'var(--color-bg)' }}>
         <div 
-          className="skill-bar-fill" 
-          style={{ width: `${width}%` }}
+          className="progress-bar bg-primary rounded-pill" 
+          role="progressbar" 
+          style={{ 
+            width: `${width}%`,
+            transition: 'width 1.5s cubic-bezier(0.22, 1, 0.36, 1)' // Smooth easing
+          }}
+          aria-valuenow={skill.level} 
+          aria-valuemin="0" 
+          aria-valuemax="100"
         />
       </div>
     </div>
@@ -35,6 +44,7 @@ export const Skills = () => {
   const [inView, setInView] = useState(false);
   const sectionRef = useRef(null);
 
+  // Intersection Observer to trigger animation when scrolled into view
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -42,7 +52,7 @@ export const Skills = () => {
           setInView(true);
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.1 }
     );
 
     if (sectionRef.current) {
@@ -67,24 +77,33 @@ export const Skills = () => {
   }, {});
 
   return (
-    <section id="skills" className="section" ref={sectionRef}>
+    <section id="skills" className="section" ref={sectionRef} style={{ backgroundColor: 'var(--color-surface)' }}>
       <div className="container">
+        
+        {/* Section Header */}
         <div className="text-center mb-5">
-          <h2>Skills & Expertise</h2>
-          <p style={{ color: 'var(--color-text-secondary)', maxWidth: '600px', margin: '0 auto' }}>
-            Technologies and tools I work with
+          <h2 className="display-6 fw-bold mb-3">Skills & Expertise</h2>
+          <p className="lead mx-auto" style={{ maxWidth: '600px', color: 'var(--color-text-secondary)' }}>
+            The technologies, tools, and languages I work with.
           </p>
         </div>
 
         <div className="row g-4">
           {Object.entries(groupedSkills).map(([category, categorySkills]) => (
             <div key={category} className="col-lg-6">
-              <Card padding="lg">
-                <h4 className="mb-4">{category}</h4>
-                {categorySkills.map((skill,index) => (
-                  <SkillBar key={skill._id || index} skill={skill} inView={inView} />
-                ))}
-              </Card>
+              
+              {/* Bootstrap Card */}
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body p-4">
+                  <h4 className="card-title fw-bold mb-4 border-bottom pb-2">{category}</h4>
+                  
+                  {categorySkills.map((skill, index) => (
+                    <SkillBar key={skill._id || index} skill={skill} inView={inView} />
+                  ))}
+                  
+                </div>
+              </div>
+
             </div>
           ))}
         </div>

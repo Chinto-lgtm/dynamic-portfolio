@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, RotateCcw } from 'lucide-react';
-import { Card } from '../Card';
-import { Input } from '../Input';
-import { Button } from '../Button';
+// IMPORT HOOKS
 import { useToast } from '../Toast';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
@@ -10,23 +8,23 @@ export const ThemeAdmin = () => {
   const { data, updateTheme } = usePortfolio();
   const toast = useToast();
 
-  // 1. Define Defaults (The Safety Net)
+  // 1. SIMPLE HEX DEFAULTS (No more OKLCH complex math)
   const defaultTheme = {
-    primary: "oklch(0.55 0.25 262)",
-    secondary: "oklch(0.65 0.20 220)",
-    accent: "oklch(0.75 0.18 160)",
-    bg: "oklch(0.98 0.01 260)",
-    surface: "oklch(1.0 0 0)",
-    text: "oklch(0.25 0.02 260)"
+    primary: "#6366f1",    // Indigo
+    secondary: "#64748b",  // Slate Grey
+    accent: "#10b981",     // Emerald Green
+    bg: "#f8f9fa",         // Light Grey Background
+    surface: "#ffffff",    // White Cards
+    text: "#1f2937"        // Dark Grey Text
   };
 
-  // 2. Initialize State Safely
-  // If data.theme is missing, use defaultTheme immediately to prevent crash
-  const [theme, setTheme] = useState(data?.theme || defaultTheme);
+  const [theme, setTheme] = useState(defaultTheme);
 
-  // 3. Sync with Database when data loads
+  // 2. Sync with Database
   useEffect(() => {
     if (data && data.theme) {
+      // If the DB has old OKLCH values, this might show black in the picker initially
+      // but hitting "Reset" will fix it to Hex.
       setTheme(data.theme);
     }
   }, [data]);
@@ -45,146 +43,120 @@ export const ThemeAdmin = () => {
     setTheme(defaultTheme);
     updateTheme(defaultTheme);
     applyTheme(defaultTheme);
-    toast.info('Theme reset to default');
+    toast.info('Theme reset to defaults');
   };
 
+  // 3. Apply CSS Variables to the page immediately
   const applyTheme = (themeValues) => {
     const root = document.documentElement;
-    root.setAttribute('data-theme', 'custom');
     Object.entries(themeValues).forEach(([key, value]) => {
-      root.style.setProperty(`--theme-${key}`, value);
+      // Sets --color-primary, --color-bg, etc.
+      root.style.setProperty(`--color-${key}`, value);
     });
   };
 
   const themeColors = [
-    { key: 'primary', label: 'Primary Color', description: 'Main brand color for buttons and accents' },
-    { key: 'secondary', label: 'Secondary Color', description: 'Supporting color for complementary elements' },
-    { key: 'accent', label: 'Accent Color', description: 'Highlight color for special elements' },
+    { key: 'primary', label: 'Primary Color', description: 'Main buttons and links' },
+    { key: 'secondary', label: 'Secondary Color', description: 'Subtitles and borders' },
+    { key: 'accent', label: 'Accent Color', description: 'Success messages and highlights' },
     { key: 'bg', label: 'Background Color', description: 'Main page background' },
-    { key: 'surface', label: 'Surface Color', description: 'Card and component backgrounds' },
-    { key: 'text', label: 'Text Color', description: 'Primary text color' }
+    { key: 'surface', label: 'Card Color', description: 'White boxes/containers' },
+    { key: 'text', label: 'Text Color', description: 'Main font color' }
   ];
 
-  // 4. Loading State (Optional, prevents flickering)
-  if (!theme) return <div>Loading Theme...</div>;
-
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="container-fluid p-0">
+      
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-2">Theme Customization</h2>
-          <p className="text-[var(--color-text-secondary)] m-0">
-            Customize your portfolio's color scheme
-          </p>
+          <h2 className="h3 mb-1">Theme Settings</h2>
+          <p className="text-muted small">Click the color boxes to change your site's look.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={handleReset}>
-            <RotateCcw size={20} />
-            Reset
-          </Button>
-          <Button variant="primary" onClick={handleSave}>
-            <Save size={20} />
-            Save Theme
-          </Button>
+        <div className="d-flex gap-2">
+          <button className="btn btn-outline-secondary d-flex align-items-center gap-2" onClick={handleReset}>
+            <RotateCcw size={18} /> Reset
+          </button>
+          <button className="btn btn-primary d-flex align-items-center gap-2" onClick={handleSave}>
+            <Save size={18} /> Save Changes
+          </button>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          {themeColors.map((color) => (
-            <Card key={color.key} padding="lg">
-              <div className="flex items-start gap-4">
-                <div
-                  className="w-16 h-16 rounded-lg border-2 border-[var(--color-border)] flex-shrink-0"
-                  style={{ backgroundColor: theme[color.key] }}
-                />
-                <div className="flex-1 min-w-0">
-                  <h6 className="mb-2">{color.label}</h6>
-                  <p className="text-sm text-[var(--color-text-secondary)] mb-3 m-0">
-                    {color.description}
-                  </p>
-                  <Input
-                    value={theme[color.key] || ''} 
-                    onChange={(e) => handleChange(color.key, e.target.value)}
-                    placeholder={`theme.${color.key}`}
-                    className="font-mono text-sm"
-                  />
+      <div className="row g-4">
+        
+        {/* LEFT COLUMN: COLOR PICKERS */}
+        <div className="col-lg-6">
+          <div className="card shadow-sm border-0">
+            <div className="card-body">
+              {themeColors.map((color) => (
+                <div key={color.key} className="d-flex align-items-center mb-4 p-2 border-bottom">
+                  {/* COLOR INPUT (The Magic Part) */}
+                  <div className="me-3">
+                    <input
+                      type="color"
+                      className="form-control form-control-color"
+                      value={theme[color.key] || '#000000'}
+                      onChange={(e) => handleChange(color.key, e.target.value)}
+                      title="Choose your color"
+                      style={{ width: '60px', height: '60px' }}
+                    />
+                  </div>
+                  
+                  {/* TEXT LABELS */}
+                  <div className="flex-grow-1">
+                    <h6 className="mb-1 fw-bold">{color.label}</h6>
+                    <p className="text-muted small mb-0">{color.description}</p>
+                  </div>
+                  
+                  {/* HEX CODE DISPLAY */}
+                  <div className="font-monospace text-muted small bg-light p-1 rounded">
+                    {theme[color.key]}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: LIVE PREVIEW */}
+        <div className="col-lg-6">
+          <div className="card shadow-sm border-0 sticky-top" style={{ top: '20px', zIndex: 1 }}>
+            <div className="card-header bg-white fw-bold">
+              Live Preview
+            </div>
+            <div className="card-body" style={{ backgroundColor: theme.bg, minHeight: '300px' }}>
+              
+              {/* Fake Navbar */}
+              <div className="d-flex justify-content-between align-items-center p-3 mb-4 rounded shadow-sm" style={{ backgroundColor: theme.surface }}>
+                <span className="fw-bold" style={{ color: theme.primary }}>MyPortfolio</span>
+                <div className="d-flex gap-2">
+                   <span style={{ color: theme.text }}>Home</span>
+                   <span style={{ color: theme.text, opacity: 0.7 }}>About</span>
                 </div>
               </div>
-            </Card>
-          ))}
-        </div>
 
-        <div className="space-y-6">
-          <Card padding="lg">
-            <h4 className="mb-4">Preview</h4>
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg" style={{ backgroundColor: theme.bg }}>
-                <p className="m-0" style={{ color: theme.text }}>Background with text</p>
-              </div>
-
-              <div className="p-4 rounded-lg border-2" style={{ 
-                backgroundColor: theme.surface,
-                borderColor: theme.primary
-              }}>
-                <p className="m-0" style={{ color: theme.text }}>Surface with primary border</p>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  className="px-4 py-2 rounded-lg text-white"
-                  style={{ backgroundColor: theme.primary }}
-                >
+              {/* Fake Hero Section */}
+              <div className="text-center mb-4">
+                <h4 style={{ color: theme.text }}>Hello, I'm a Developer</h4>
+                <p style={{ color: theme.text, opacity: 0.8 }}>This is how your text looks on the background.</p>
+                <button className="btn btn-sm text-white px-4" style={{ backgroundColor: theme.primary }}>
                   Primary Button
                 </button>
-                <button
-                  className="px-4 py-2 rounded-lg text-white"
-                  style={{ backgroundColor: theme.secondary }}
-                >
-                  Secondary
-                </button>
-                <button
-                  className="px-4 py-2 rounded-lg text-white"
-                  style={{ backgroundColor: theme.accent }}
-                >
-                  Accent
-                </button>
               </div>
+
+              {/* Fake Card */}
+              <div className="p-3 rounded shadow-sm" style={{ backgroundColor: theme.surface, borderLeft: `4px solid ${theme.accent}` }}>
+                <h6 style={{ color: theme.text }}>Project Card</h6>
+                <p className="small mb-0" style={{ color: theme.secondary }}>
+                  This is a subtitle or secondary text color example.
+                </p>
+              </div>
+
             </div>
-          </Card>
-
-          <Card padding="lg">
-            <h4 className="mb-4">Color Format</h4>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-              Colors use the OKLCH format for better perceptual uniformity. Format:
-            </p>
-            <pre className="text-xs bg-[var(--color-bg)] p-4 rounded-lg overflow-x-auto m-0">
-{`oklch(L C H)
-  L: Lightness (0-1)
-  C: Chroma (0-0.4)
-  H: Hue (0-360)`}
-            </pre>
-            <p className="text-sm text-[var(--color-text-secondary)] mt-4 mb-0">
-              Example: oklch(0.55 0.25 262)
-            </p>
-          </Card>
-
-          <Card padding="lg">
-            <h4 className="mb-4">Data Structure</h4>
-            <pre className="text-xs text-[var(--color-text-secondary)] overflow-x-auto m-0">
-{`{
-  "theme": {
-    "primary": "oklch(...)",
-    "secondary": "oklch(...)",
-    "accent": "oklch(...)",
-    "bg": "oklch(...)",
-    "surface": "oklch(...)",
-    "text": "oklch(...)"
-  }
-}`}
-            </pre>
-          </Card>
+          </div>
         </div>
+
       </div>
     </div>
   );

@@ -13,9 +13,6 @@ export const PortfolioProvider = ({ children }) => {
   // ============================================================
   // CONFIGURATION
   // ============================================================
-  // API_BASE_URL comes from src/config/api.js
-  // It is 'http://localhost:5000/api' on your computer.
-  
   const PORTFOLIO_ENDPOINT = `${API_BASE_URL}/portfolio`;
   const AUTH_ENDPOINT = `${API_BASE_URL}/auth`;
 
@@ -76,7 +73,6 @@ export const PortfolioProvider = ({ children }) => {
       };
       if (body) options.body = JSON.stringify(body);
 
-      // Note: Endpoint passed here is relative to portfolio (e.g. 'skills')
       const url = `${PORTFOLIO_ENDPOINT}/${endpoint}`;
       
       const res = await fetch(url, options);
@@ -94,7 +90,6 @@ export const PortfolioProvider = ({ children }) => {
   // Contact Form (Public)
   const submitContactForm = async (formData) => {
     try {
-      // Uses the global contact endpoint
       const res = await fetch(`${API_BASE_URL}/portfolio/contact`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -143,8 +138,37 @@ export const PortfolioProvider = ({ children }) => {
     window.location.reload();
   };
 
+  // ✅ NEW: CHANGE PASSWORD FUNCTION
+  const changePassword = async (username, newPassword) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      const res = await fetch(`${AUTH_ENDPOINT}/change-password`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({ username, newPassword })
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error || "Failed to update password");
+      
+      // If successful, log them out to force re-login with new password
+      alert("Success! Password changed. Please log in again.");
+      logout(); 
+      return true;
+    } catch (error) {
+      console.error("Change password error:", error);
+      alert(error.message);
+      return false;
+    }
+  };
+
   // ============================================================
-  // 4. DATA UPDATES (Same logic, condensed)
+  // 4. DATA UPDATES
   // ============================================================
   const updateHero = async (d) => { const r = await apiCall('hero', 'PUT', d); if(r) setData(p=>({...p, hero: r})); };
   const updateAbout = async (d) => { const r = await apiCall('about', 'PUT', d); if(r) setData(p=>({...p, about: r})); };
@@ -175,6 +199,7 @@ export const PortfolioProvider = ({ children }) => {
 
   const value = {
     data, loading, isAdmin, login, logout,
+    changePassword, // ✅ Added to Context Value
     submitContactForm,
     updateHero, updateAbout, updateContact, updateSocial, updateTheme,
     addQualification, addSkill, addExperience, addProject, addTestimonial,

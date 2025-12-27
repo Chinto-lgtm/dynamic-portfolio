@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react';
-import { Card } from '../Card';
-import { Input, Select, Textarea } from '../Input';
-import { Button } from '../Button';
-import { Modal, ConfirmModal } from '../Modal';
+import { Plus, Edit2, Trash2, GripVertical, X, Type, Image as ImageIcon, Calendar, Hash, AlignLeft } from 'lucide-react';
+// KEEP HOOKS
 import { useToast } from '../Toast';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
@@ -11,55 +8,43 @@ export const FormBuilder = () => {
   const { data, addCustomSection, addCustomEntry, updateCustomEntry, deleteCustomEntry, deleteCustomSection } = usePortfolio();
   const toast = useToast();
   
-  // Modal States
+  // --- STATE ---
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+  
   const [selectedSection, setSelectedSection] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // Form States
-  const [sectionForm, setSectionForm] = useState({
-    name: '',
-    fields: []
-  });
+  // Form State for Creating a New Section
+  const [sectionForm, setSectionForm] = useState({ name: '', fields: [] });
+  const [fieldForm, setFieldForm] = useState({ label: '', name: '', type: 'text', required: false });
 
-  const [fieldForm, setFieldForm] = useState({
-    label: '',
-    name: '',
-    type: 'text',
-    required: false
-  });
-
+  // Form State for Adding/Editing an Entry
   const [entryForm, setEntryForm] = useState({});
 
   const fieldTypes = [
-    { value: 'text', label: 'Text' },
-    { value: 'textarea', label: 'Textarea' },
-    { value: 'number', label: 'Number' },
-    { value: 'date', label: 'Date' },
-    { value: 'select', label: 'Select' },
-    { value: 'image-url', label: 'Image URL' }
+    { value: 'text', label: 'Text Input', icon: Type },
+    { value: 'textarea', label: 'Long Text', icon: AlignLeft },
+    { value: 'number', label: 'Number', icon: Hash },
+    { value: 'date', label: 'Date', icon: Calendar },
+    { value: 'image-url', label: 'Image URL', icon: ImageIcon }
   ];
 
-  // --- LOCAL FORM LOGIC (Keep 'id' here as these are temporary) ---
+  // --- SECTION BUILDER LOGIC ---
+
   const handleAddField = () => {
     if (!fieldForm.label || !fieldForm.name) {
       toast.error('Field label and name are required');
       return;
     }
-
+    // Add field to local state with a temporary ID
     setSectionForm(prev => ({
       ...prev,
-      fields: [...prev.fields, { ...fieldForm, id: Date.now() }] // Local ID is fine here
+      fields: [...prev.fields, { ...fieldForm, id: Date.now() }] 
     }));
-
-    setFieldForm({
-      label: '',
-      name: '',
-      type: 'text',
-      required: false
-    });
+    // Reset field input
+    setFieldForm({ label: '', name: '', type: 'text', required: false });
   };
 
   const handleRemoveField = (fieldId) => {
@@ -74,31 +59,23 @@ export const FormBuilder = () => {
       toast.error('Section name and at least one field are required');
       return;
     }
-
     addCustomSection(sectionForm);
     toast.success('Custom section created successfully!');
     setIsSectionModalOpen(false);
     setSectionForm({ name: '', fields: [] });
   };
 
-  // --- DATABASE LOGIC (Use '_id' here) ---
-
-  const handleDeleteSection = (section) => {
-    // FIX 1: Use _id from MongoDB
-    deleteCustomSection(section._id);
-    toast.success('Section deleted successfully!');
-  };
+  // --- ENTRY LOGIC ---
 
   const handleAddEntry = (section) => {
     setSelectedSection(section);
     setEditingEntry(null);
     
-    // Initialize form
+    // Create empty form object based on fields
     const initialForm = {};
-    section.fields.forEach(field => {
-      initialForm[field.name] = '';
-    });
+    section.fields.forEach(field => { initialForm[field.name] = ''; });
     setEntryForm(initialForm);
+    
     setIsEntryModalOpen(true);
   };
 
@@ -110,17 +87,14 @@ export const FormBuilder = () => {
   };
 
   const handleSaveEntry = () => {
-    const hasErrors = selectedSection.fields.some(field => {
-      return field.required && !entryForm[field.name];
-    });
-
+    // Validate required fields
+    const hasErrors = selectedSection.fields.some(field => field.required && !entryForm[field.name]);
     if (hasErrors) {
       toast.error('Please fill in all required fields');
       return;
     }
 
     if (editingEntry) {
-      // FIX 2: Use _id for updates
       updateCustomEntry(selectedSection._id, editingEntry._id, entryForm);
       toast.success('Entry updated successfully!');
     } else {
@@ -133,321 +107,274 @@ export const FormBuilder = () => {
     setSelectedSection(null);
   };
 
-  const renderField = (field) => {
-    // FIX 3: Use _id for key (fallback to id if local)
-    const key = field._id || field.id; 
-    
-    const commonProps = {
-      label: field.label,
-      required: field.required,
-      value: entryForm[field.name] || '',
-      onChange: (e) => setEntryForm(prev => ({ ...prev, [field.name]: e.target.value }))
-    };
+  // --- RENDER HELPERS ---
+
+  // Renders the inputs inside the "Add/Edit Entry" Modal
+  const renderEntryInput = (field) => {
+    const key = field._id || field.id;
+    const value = entryForm[field.name] || '';
+    const onChange = (e) => setEntryForm(prev => ({ ...prev, [field.name]: e.target.value }));
+
+    // Common Wrapper
+    const wrapperClass = "mb-3";
+    const label = <label className="form-label fw-bold small">{field.label} {field.required && <span className="text-danger">*</span>}</label>;
 
     switch (field.type) {
       case 'textarea':
-        return <Textarea key={key} {...commonProps} rows={4} />;
-      case 'number':
-        return <Input key={key} {...commonProps} type="number" />;
-      case 'date':
-        return <Input key={key} {...commonProps} type="date" />;
-      case 'image-url':
         return (
-          <div key={key}>
-            <Input {...commonProps} placeholder="https://..." />
-            {entryForm[field.name] && (
-              <img 
-                src={entryForm[field.name]} 
-                alt="Preview" 
-                className="mt-2 w-32 h-32 object-cover rounded-lg"
-                onError={(e) => e.target.style.display = 'none'}
-              />
-            )}
+          <div key={key} className={wrapperClass}>
+            {label}
+            <textarea className="form-control" rows="3" value={value} onChange={onChange} required={field.required} />
           </div>
         );
-      default:
-        return <Input key={key} {...commonProps} />;
+      case 'image-url':
+        return (
+          <div key={key} className={wrapperClass}>
+            {label}
+            <input className="form-control" type="text" placeholder="https://..." value={value} onChange={onChange} required={field.required} />
+            {value && <img src={value} alt="Preview" className="mt-2 rounded" style={{height: '80px', objectFit: 'cover'}} onError={(e) => e.target.style.display='none'} />}
+          </div>
+        );
+      case 'date':
+        return (
+          <div key={key} className={wrapperClass}>
+            {label}
+            <input className="form-control" type="date" value={value} onChange={onChange} required={field.required} />
+          </div>
+        );
+      default: // text, number
+        return (
+          <div key={key} className={wrapperClass}>
+            {label}
+            <input className="form-control" type={field.type} value={value} onChange={onChange} required={field.required} />
+          </div>
+        );
     }
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-8">
+    <div className="container-fluid p-0">
+      
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
-          <h2 className="mb-2">Form Builder</h2>
-          <p className="text-[var(--color-text-secondary)] m-0">
-            Create custom content sections with dynamic forms
-          </p>
+          <h2 className="h3 mb-1">Custom Content</h2>
+          <p className="text-muted small">Build your own sections (e.g. Certifications, Awards).</p>
         </div>
-        <Button variant="primary" onClick={() => setIsSectionModalOpen(true)}>
-          <Plus size={20} />
-          Create Section
-        </Button>
+        <button className="btn btn-primary d-flex align-items-center gap-2" onClick={() => setIsSectionModalOpen(true)}>
+          <Plus size={18} /> Create Section
+        </button>
       </div>
 
+      {/* --- SECTIONS LIST --- */}
       {(!data.customSections || data.customSections.length === 0) ? (
-        <Card padding="lg" className="text-center">
-          <h4 className="mb-4">No Custom Sections Yet</h4>
-          <p className="text-[var(--color-text-secondary)] mb-6">
-            Create custom content types like Certifications, Awards, or Publications.
-          </p>
-          <Button variant="primary" onClick={() => setIsSectionModalOpen(true)}>
-            Create Your First Section
-          </Button>
-        </Card>
+        <div className="text-center py-5 bg-light rounded border border-dashed">
+          <h5 className="text-muted">No custom sections yet.</h5>
+          <button className="btn btn-primary mt-3" onClick={() => setIsSectionModalOpen(true)}>Create Your First Section</button>
+        </div>
       ) : (
-        <div className="space-y-6">
+        <div className="d-flex flex-column gap-4">
           {data.customSections.map(section => (
-            // FIX 4: Use _id for Section Key
-            <Card key={section._id} padding="lg">
-              <div className="flex items-center justify-between mb-6">
+            <div key={section._id} className="card shadow-sm border-0">
+              
+              {/* SECTION HEADER */}
+              <div className="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <div>
-                  <h3 className="mb-1">{section.name}</h3>
-                  <p className="text-sm text-[var(--color-text-secondary)] m-0">
-                    {section.fields.length} fields • {section.entries?.length || 0} entries
-                  </p>
+                  <h5 className="m-0 fw-bold">{section.name}</h5>
+                  <small className="text-muted">
+                    {section.entries?.length || 0} entries • {section.fields.length} fields defined
+                  </small>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="primary" size="sm" onClick={() => handleAddEntry(section)}>
-                    <Plus size={16} />
-                    Add Entry
-                  </Button>
-                  <Button 
-                    variant="danger" 
-                    size="sm"
-                    onClick={() => setDeleteConfirm({ type: 'section', item: section })}
-                  >
-                    <Trash2 size={16} />
-                  </Button>
+                <div className="d-flex gap-2">
+                   <button className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" onClick={() => handleAddEntry(section)}>
+                     <Plus size={16} /> Add Entry
+                   </button>
+                   <button className="btn btn-sm btn-outline-danger" onClick={() => setDeleteConfirm({ type: 'section', item: section })}>
+                     <Trash2 size={16} />
+                   </button>
                 </div>
               </div>
 
-              {/* Field Schema */}
-              <div className="mb-6 p-4 bg-[var(--color-bg)] rounded-lg">
-                <h6 className="mb-3">Field Schema:</h6>
-                <div className="space-y-2">
-                  {section.fields.map(field => (
-                    // FIX 5: Use _id for Fields (from DB)
-                    <div key={field._id} className="flex items-center gap-3 text-sm">
-                      <GripVertical size={16} className="text-[var(--color-text-secondary)]" />
-                      <span className="font-mono">{field.name}</span>
-                      <span className="text-[var(--color-text-secondary)]">({field.type})</span>
-                      {field.required && (
-                        <span className="px-2 py-0.5 bg-[var(--color-error)]/10 text-[var(--color-error)] rounded text-xs">
-                          Required
-                        </span>
-                      )}
-                    </div>
-                  ))}
+              <div className="card-body">
+                
+                {/* 1. SCHEMA VIEW (Read Only) */}
+                <div className="bg-light p-3 rounded mb-4">
+                  <h6 className="fw-bold small text-uppercase text-muted mb-2">Structure</h6>
+                  <div className="d-flex flex-wrap gap-2">
+                    {section.fields.map(f => (
+                      <span key={f._id} className="badge bg-secondary bg-opacity-10 text-secondary border d-flex align-items-center gap-1">
+                        {f.name} <span className="opacity-50">({f.type})</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Entries */}
-              <div className="space-y-3">
-                {section.entries && section.entries.length > 0 ? (
-                  section.entries.map(entry => (
-                    // FIX 6: Use _id for Entries
-                    <div key={entry._id} className="p-4 bg-[var(--color-bg)] rounded-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1 grid grid-cols-2 gap-3">
-                          {section.fields.slice(0, 4).map(field => (
-                            <div key={field._id}>
-                              <p className="text-xs text-[var(--color-text-secondary)] mb-1 m-0">
-                                {field.label}
-                              </p>
-                              {field.type === 'image-url' && entry[field.name] ? (
-                                <img 
-                                  src={entry[field.name]} 
-                                  alt={field.label}
-                                  className="w-20 h-20 object-cover rounded"
-                                />
-                              ) : (
-                                <p className="text-sm m-0 truncate">
-                                  {entry[field.name] || '—'}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex gap-2 ml-4">
-                          <button
-                            onClick={() => handleEditEntry(section, entry)}
-                            className="p-2 hover:bg-[var(--color-surface)] rounded-lg transition-colors"
-                          >
-                            <Edit2 size={16} className="text-[var(--color-primary)]" />
-                          </button>
-                          <button
-                            // FIX 7: Pass IDs for delete confirmation
-                            onClick={() => setDeleteConfirm({ type: 'entry', sectionId: section._id, item: entry })}
-                            className="p-2 hover:bg-[var(--color-surface)] rounded-lg transition-colors"
-                          >
-                            <Trash2 size={16} className="text-[var(--color-error)]" />
-                          </button>
+                {/* 2. ENTRIES GRID */}
+                <div className="row g-3">
+                  {section.entries && section.entries.length > 0 ? (
+                    section.entries.map(entry => (
+                      <div key={entry._id} className="col-md-6 col-lg-4">
+                        <div className="card h-100 border">
+                          <div className="card-body">
+                            {/* Render first 3 fields as preview */}
+                            {section.fields.slice(0, 3).map(field => (
+                              <div key={field._id} className="mb-2">
+                                <span className="text-muted x-small d-block" style={{fontSize: '10px', textTransform: 'uppercase'}}>{field.label}</span>
+                                {field.type === 'image-url' && entry[field.name] ? (
+                                  <img src={entry[field.name]} alt="img" className="rounded" style={{width: '40px', height: '40px', objectFit: 'cover'}} />
+                                ) : (
+                                  <span className="small fw-bold text-dark">{entry[field.name] || '-'}</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="card-footer bg-white border-top-0 d-flex justify-content-end gap-2">
+                            <button className="btn btn-sm btn-light text-primary" onClick={() => handleEditEntry(section, entry)}>
+                              <Edit2 size={14} />
+                            </button>
+                            <button className="btn btn-sm btn-light text-danger" onClick={() => setDeleteConfirm({ type: 'entry', sectionId: section._id, item: entry })}>
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-4 m-0">
-                    No entries yet. Click "Add Entry" to create one.
-                  </p>
-                )}
+                    ))
+                  ) : (
+                    <div className="col-12 text-center text-muted small py-2">No entries yet.</div>
+                  )}
+                </div>
+
               </div>
-            </Card>
-          ))
-        }</div>
+            </div>
+          ))}
+        </div>
       )}
 
-      {/* Create Section Modal */}
-      <Modal
-        isOpen={isSectionModalOpen}
-        onClose={() => {
-          setIsSectionModalOpen(false);
-          setSectionForm({ name: '', fields: [] });
-        }}
-        title="Create Custom Section"
-        size="lg"
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setIsSectionModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleCreateSection}>
-              Create Section
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-6">
-          <Input
-            label="Section Name"
-            value={sectionForm.name}
-            onChange={(e) => setSectionForm(prev => ({ ...prev, name: e.target.value }))}
-            placeholder="e.g., Certifications, Awards, Publications"
-            required
-          />
-
-          <div>
-            <h6 className="mb-4">Define Fields</h6>
-            <Card padding="md" className="mb-4">
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <Input
-                  label="Field Label"
-                  value={fieldForm.label}
-                  onChange={(e) => setFieldForm(prev => ({ ...prev, label: e.target.value }))}
-                  placeholder="Display name"
-                />
-                <Input
-                  label="Field Name"
-                  value={fieldForm.name}
-                  onChange={(e) => setFieldForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="fieldName (camelCase)"
-                />
+      {/* --- MODAL: CREATE SECTION --- */}
+      {isSectionModalOpen && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Create Custom Section</h5>
+                <button type="button" className="btn-close" onClick={() => setIsSectionModalOpen(false)}></button>
               </div>
-
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <Select
-                  label="Field Type"
-                  value={fieldForm.type}
-                  onChange={(e) => setFieldForm(prev => ({ ...prev, type: e.target.value }))}
-                  options={fieldTypes}
-                />
-                <div className="flex items-end">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={fieldForm.required}
-                      onChange={(e) => setFieldForm(prev => ({ ...prev, required: e.target.checked }))}
-                      className="w-4 h-4"
-                    />
-                    <span>Required field</span>
-                  </label>
+              
+              <div className="modal-body">
+                {/* Section Name */}
+                <div className="mb-4">
+                  <label className="form-label fw-bold">Section Name</label>
+                  <input 
+                    className="form-control" 
+                    placeholder="e.g. Publications" 
+                    value={sectionForm.name} 
+                    onChange={e => setSectionForm(p => ({...p, name: e.target.value}))} 
+                  />
                 </div>
-              </div>
 
-              <Button variant="secondary" size="sm" onClick={handleAddField} className="w-full">
-                <Plus size={16} />
-                Add Field
-              </Button>
-            </Card>
+                <hr />
 
-            {/* Local Fields List (Uses local ID) */}
-            {sectionForm.fields.length > 0 && (
-              <div className="space-y-2">
-                {sectionForm.fields.map(field => (
-                  <div key={field.id} className="flex items-center justify-between p-3 bg-[var(--color-bg)] rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <GripVertical size={16} className="text-[var(--color-text-secondary)]" />
-                      <div>
-                        <p className="m-0">{field.label}</p>
-                        <p className="text-sm text-[var(--color-text-secondary)] m-0">
-                          {field.name} • {field.type}
-                          {field.required && ' • Required'}
-                        </p>
+                {/* Field Builder */}
+                <h6 className="fw-bold mb-3">Define Fields</h6>
+                <div className="card bg-light border-0 mb-3">
+                  <div className="card-body">
+                    <div className="row g-2">
+                      <div className="col-md-4">
+                        <label className="small fw-bold">Label</label>
+                        <input className="form-control form-control-sm" placeholder="Display Name" value={fieldForm.label} onChange={e => setFieldForm(p => ({...p, label: e.target.value}))} />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="small fw-bold">Var Name</label>
+                        <input className="form-control form-control-sm" placeholder="camelCase" value={fieldForm.name} onChange={e => setFieldForm(p => ({...p, name: e.target.value}))} />
+                      </div>
+                      <div className="col-md-3">
+                        <label className="small fw-bold">Type</label>
+                        <select className="form-select form-select-sm" value={fieldForm.type} onChange={e => setFieldForm(p => ({...p, type: e.target.value}))}>
+                          {fieldTypes.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        </select>
+                      </div>
+                      <div className="col-md-2 d-flex align-items-end">
+                        <button className="btn btn-sm btn-dark w-100" onClick={handleAddField}><Plus size={14}/> Add</button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleRemoveField(field.id)}
-                      className="p-1 hover:bg-[var(--color-surface)] rounded"
-                    >
-                      <Trash2 size={16} className="text-[var(--color-error)]" />
-                    </button>
                   </div>
-                ))}
+                </div>
+
+                {/* Field List */}
+                <ul className="list-group">
+                  {sectionForm.fields.map(f => (
+                     <li key={f.id} className="list-group-item d-flex justify-content-between align-items-center">
+                       <div className="d-flex align-items-center gap-2">
+                         <GripVertical size={16} className="text-muted"/>
+                         <span className="fw-bold">{f.label}</span>
+                         <span className="badge bg-light text-dark border">{f.type}</span>
+                         <span className="text-muted small">({f.name})</span>
+                       </div>
+                       <button className="btn btn-sm text-danger" onClick={() => handleRemoveField(f.id)}><X size={16}/></button>
+                     </li>
+                  ))}
+                  {sectionForm.fields.length === 0 && <li className="list-group-item text-center text-muted fst-italic">No fields defined yet.</li>}
+                </ul>
               </div>
-            )}
+
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setIsSectionModalOpen(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleCreateSection}>Create Section</button>
+              </div>
+            </div>
           </div>
         </div>
-      </Modal>
+      )}
 
-      {/* Add/Edit Entry Modal */}
-      <Modal
-        isOpen={isEntryModalOpen}
-        onClose={() => {
-          setIsEntryModalOpen(false);
-          setEntryForm({});
-          setSelectedSection(null);
-        }}
-        title={editingEntry ? 'Edit Entry' : `Add ${selectedSection?.name} Entry`}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setIsEntryModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleSaveEntry}>
-              {editingEntry ? 'Update' : 'Add'}
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          {selectedSection?.fields.map(field => renderField(field))}
+      {/* --- MODAL: ADD/EDIT ENTRY --- */}
+      {isEntryModalOpen && selectedSection && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{editingEntry ? 'Edit' : 'Add'} {selectedSection.name} Entry</h5>
+                <button type="button" className="btn-close" onClick={() => setIsEntryModalOpen(false)}></button>
+              </div>
+              <div className="modal-body">
+                {selectedSection.fields.map(field => renderEntryInput(field))}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setIsEntryModalOpen(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleSaveEntry}>Save Entry</button>
+              </div>
+            </div>
+          </div>
         </div>
-      </Modal>
+      )}
 
-      {/* Delete Confirmation */}
-      <ConfirmModal
-        isOpen={deleteConfirm !== null}
-        onClose={() => setDeleteConfirm(null)}
-        onConfirm={() => {
-          if (deleteConfirm.type === 'section') {
-            handleDeleteSection(deleteConfirm.item);
-          } else {
-            // FIX 8: Ensure we pass _id for deletion
-            deleteCustomEntry(deleteConfirm.sectionId, deleteConfirm.item._id);
-            toast.success('Entry deleted successfully!');
-          }
-          setDeleteConfirm(null);
-        }}
-        title={`Delete ${deleteConfirm?.type === 'section' ? 'Section' : 'Entry'}`}
-        message={
-          deleteConfirm?.type === 'section'
-            ? `Are you sure you want to delete the "${deleteConfirm?.item?.name}" section and all its entries?`
-            : 'Are you sure you want to delete this entry?'
-        }
-        confirmText="Delete"
-        variant="danger"
-      />
+      {/* --- MODAL: DELETE CONFIRM --- */}
+      {deleteConfirm && (
+        <div className="modal show d-block" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header border-0">
+                <h5 className="modal-title text-danger">Delete Confirmation</h5>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to delete this 
+                  <strong> {deleteConfirm.type === 'section' ? 'Section (and all its entries)' : 'Entry'}</strong>?
+                </p>
+              </div>
+              <div className="modal-footer border-0">
+                <button className="btn btn-light" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                <button className="btn btn-danger" onClick={() => {
+                   if (deleteConfirm.type === 'section') deleteCustomSection(deleteConfirm.item._id);
+                   else deleteCustomEntry(deleteConfirm.sectionId, deleteConfirm.item._id);
+                   setDeleteConfirm(null);
+                   toast.success('Deleted successfully');
+                }}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

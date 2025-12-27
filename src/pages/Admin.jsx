@@ -15,6 +15,7 @@ import { ContactAdmin } from '../components/admin/ContactAdmin';
 import { ThemeAdmin } from '../components/admin/ThemeAdmin';
 import { FormBuilder } from '../components/admin/FormBuilder';
 import { Login } from '../components/admin/Login';
+import { SettingsAdmin } from '../components/admin/SettingsAdmin';
 
 export const Admin = () => {
   const { isAdmin } = usePortfolio();
@@ -50,6 +51,11 @@ export const Admin = () => {
         return <ThemeAdmin />;
       case 'custom-sections':
         return <FormBuilder />;
+      
+      // ✅ ADDED THIS CASE:
+      case 'settings':
+        return <SettingsAdmin />;
+        
       default:
         return <AdminDashboard />;
     }
