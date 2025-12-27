@@ -22,7 +22,7 @@ export const Login = () => {
       const success = await login(credentials.username, credentials.password);
       
       if (!success) {
-        setError('Invalid credentials. (Try: admin / admin123)');
+        setError('Invalid credentials.');
       }
     } catch (err) {
       setError('Login failed. Please check your server connection.');
