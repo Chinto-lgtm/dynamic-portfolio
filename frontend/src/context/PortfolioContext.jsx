@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-// IMPORT THE CONFIG (This makes it work on Localhost)
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { API_BASE_URL } from '../config/api';
 
 export const PortfolioContext = createContext();
@@ -17,19 +16,12 @@ export const PortfolioProvider = ({ children }) => {
   const AUTH_ENDPOINT = `${API_BASE_URL}/auth`;
 
   // ============================================================
-  // 1. INITIALIZATION
+  // 1. DATA FETCHING (Defined BEFORE useEffect)
   // ============================================================
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) setIsAdmin(true);
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-
       console.log(`🌐 [Context] Fetching from: ${PORTFOLIO_ENDPOINT}`);
 
       const res = await fetch(PORTFOLIO_ENDPOINT);
@@ -51,10 +43,19 @@ export const PortfolioProvider = ({ children }) => {
       setError(err.message);
       setLoading(false);
     }
-  };
+  }, [PORTFOLIO_ENDPOINT]); // Dependency ensures stability
 
   // ============================================================
-  // 2. API HELPER
+  // 2. INITIALIZATION (Runs once, depends on fetchData)
+  // ============================================================
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) setIsAdmin(true);
+    fetchData();
+  }, [fetchData]);
+
+  // ============================================================
+  // 3. API HELPER
   // ============================================================
   const apiCall = async (endpoint, method, body = null) => {
     const token = localStorage.getItem('token');
@@ -74,7 +75,6 @@ export const PortfolioProvider = ({ children }) => {
       if (body) options.body = JSON.stringify(body);
 
       const url = `${PORTFOLIO_ENDPOINT}/${endpoint}`;
-      
       const res = await fetch(url, options);
       
       if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
@@ -108,7 +108,7 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // ============================================================
-  // 3. AUTHENTICATION
+  // 4. AUTHENTICATION
   // ============================================================
   const login = async (username, password) => {
     try {
@@ -138,11 +138,9 @@ export const PortfolioProvider = ({ children }) => {
     window.location.reload();
   };
 
-  // ✅ NEW: CHANGE PASSWORD FUNCTION
   const changePassword = async (username, newPassword) => {
     try {
       const token = localStorage.getItem('token');
-      
       const res = await fetch(`${AUTH_ENDPOINT}/change-password`, {
         method: 'PUT',
         headers: { 
@@ -153,10 +151,8 @@ export const PortfolioProvider = ({ children }) => {
       });
 
       const data = await res.json();
-      
       if (!res.ok) throw new Error(data.error || "Failed to update password");
       
-      // If successful, log them out to force re-login with new password
       alert("Success! Password changed. Please log in again.");
       logout(); 
       return true;
@@ -168,7 +164,7 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // ============================================================
-  // 4. DATA UPDATES
+  // 5. DATA UPDATES
   // ============================================================
   const updateHero = async (d) => { const r = await apiCall('hero', 'PUT', d); if(r) setData(p=>({...p, hero: r})); };
   const updateAbout = async (d) => { const r = await apiCall('about', 'PUT', d); if(r) setData(p=>({...p, about: r})); };
@@ -198,8 +194,7 @@ export const PortfolioProvider = ({ children }) => {
   const addCustomSection = () => {}; const deleteCustomSection = () => {}; const addCustomEntry = () => {}; const updateCustomEntry = () => {}; const deleteCustomEntry = () => {};
 
   const value = {
-    data, loading, isAdmin, login, logout,
-    changePassword, // ✅ Added to Context Value
+    data, loading, isAdmin, login, logout, changePassword,
     submitContactForm,
     updateHero, updateAbout, updateContact, updateSocial, updateTheme,
     addQualification, addSkill, addExperience, addProject, addTestimonial,
@@ -209,9 +204,8 @@ export const PortfolioProvider = ({ children }) => {
   };
 
   // ============================================================
-  // 5. SAFETY RENDER (Bootstrap / Pure CSS)
+  // 6. SAFETY RENDER
   // ============================================================
-
   if (loading) {
     return (
       <div className="d-flex vh-100 vw-100 align-items-center justify-content-center bg-light">
@@ -222,25 +216,17 @@ export const PortfolioProvider = ({ children }) => {
     );
   }
 
-  // Error Screen
   if (error || !data) {
     return (
       <div className="d-flex vh-100 flex-column align-items-center justify-content-center bg-light p-4">
         <div className="card shadow-lg p-4" style={{ maxWidth: '450px', width: '100%' }}>
           <div className="card-body text-center">
             <h2 className="text-danger mb-3">Connection Failed</h2>
-            <p className="text-muted mb-3">
-              Could not connect to the Backend Server.
-            </p>
-            
+            <p className="text-muted mb-3">Could not connect to the Backend Server.</p>
             <div className="alert alert-secondary text-start font-monospace small mb-4">
               Target: <strong>{API_BASE_URL}</strong>
             </div>
-
-            <button 
-              onClick={() => window.location.reload()} 
-              className="btn btn-primary w-100"
-            >
+            <button onClick={() => window.location.reload()} className="btn btn-primary w-100">
               Retry Connection
             </button>
           </div>

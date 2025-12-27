@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, MessageSquare, Quote } from 'lucide-react';
+import { Plus, Edit2, Trash2, Quote } from 'lucide-react';
 // KEEP HOOKS
 import { useToast } from '../Toast';
 import { usePortfolio } from '../../hooks/usePortfolio';

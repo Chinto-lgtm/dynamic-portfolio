@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-// 1. Removed custom Card import
 import { usePortfolio } from '../hooks/usePortfolio';
 
 const SkillBar = ({ skill, inView }) => {
@@ -55,13 +54,16 @@ export const Skills = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    // FIX: Capture the current ref value to a variable so cleanup works reliably
+    const currentRef = sectionRef.current;
+
+    if (currentRef) {
+      observer.observe(currentRef);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (currentRef) {
+        observer.unobserve(currentRef);
       }
     };
   }, []);
