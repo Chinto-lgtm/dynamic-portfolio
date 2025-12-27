@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Mail, ChevronDown } from 'lucide-react';
-// 1. Removed custom Button import to use standard Bootstrap
+import { Mail, ChevronDown } from 'lucide-react'; // Removed 'Download' and 'Eye'
 import { usePortfolio } from '../hooks/usePortfolio';
 
 export const Hero = () => {
@@ -32,10 +31,8 @@ export const Hero = () => {
     <section 
       id="hero" 
       className="d-flex align-items-center justify-content-center position-relative" 
-      style={{ minHeight: '100vh', paddingTop: '80px' }} // Padding top prevents Navbar overlap
+      style={{ minHeight: '100vh', paddingTop: '80px' }} 
     >
-      
-      {/* Internal Style for Bounce Animation */}
       <style>
         {`
           @keyframes bounce {
@@ -51,7 +48,7 @@ export const Hero = () => {
 
       <div className="container text-center">
         
-        {/* 1. Profile Image (With FAILSAVE styling) */}
+        {/* Profile Image */}
         <div className="mb-4 d-inline-block position-relative">
           <img
             src={hero.profileImage}
@@ -61,7 +58,6 @@ export const Hero = () => {
               width: '220px', 
               height: '220px', 
               objectFit: 'cover',
-              // These ensure it stays circular and small
             }}
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/220';
@@ -69,12 +65,12 @@ export const Hero = () => {
           />
         </div>
 
-        {/* 2. Name */}
+        {/* Name */}
         <h1 className="display-3 fw-bold mb-3">
           {hero.name}
         </h1>
 
-        {/* 3. Rotating Roles */}
+        {/* Rotating Roles */}
         <div className="h3 text-primary mb-4" style={{ minHeight: '40px', fontWeight: '500' }}>
           <span 
             style={{ 
@@ -87,12 +83,12 @@ export const Hero = () => {
           </span>
         </div>
 
-        {/* 4. Intro Text */}
+        {/* Intro Text */}
         <p className="lead text-muted mx-auto mb-5" style={{ maxWidth: '700px' }}>
           {hero.intro}
         </p>
 
-        {/* 5. CTA Buttons */}
+        {/* CTA Button (Only Contact Now) */}
         <div className="d-flex flex-wrap justify-content-center gap-3">
           <button 
             onClick={scrollToContact}
@@ -101,20 +97,9 @@ export const Hero = () => {
             <Mail size={20} />
             Get in Touch
           </button>
-          
-          {hero.cvUrl && (
-            <a 
-              href={hero.cvUrl}
-              download
-              className="btn btn-outline-dark btn-lg d-flex align-items-center gap-2 px-4 rounded-pill"
-            >
-              <Download size={20} />
-              Download CV
-            </a>
-          )}
         </div>
 
-        {/* 6. Scroll Indicator */}
+        {/* Scroll Indicator */}
         <div className="position-absolute bottom-0 start-50 translate-middle-x mb-4">
           <button
             onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}

@@ -10,8 +10,7 @@ const portfolioSchema = new mongoose.Schema({
     name: String,
     roles: [String],
     intro: String,
-    profileImage: String,
-    cvUrl: String
+    profileImage: String
   },
   about: {
     heading: String,

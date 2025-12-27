@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Save, User } from 'lucide-react';
-// 1. Removed custom component imports
 import { useToast } from '../Toast';
 import { usePortfolio } from '../../hooks/usePortfolio';
 
@@ -8,13 +7,12 @@ export const HeroAdmin = () => {
   const { data, updateHero } = usePortfolio();
   const toast = useToast();
   
-  // Initialize form with existing data or defaults
+  // Initialize form (Removed cvUrl since we aren't using it anymore)
   const [formData, setFormData] = useState(data.hero || {
     name: '',
     roles: [],
     intro: '',
-    profileImage: '',
-    cvUrl: ''
+    profileImage: ''
   });
 
   const handleChange = (e) => {
@@ -74,7 +72,7 @@ export const HeroAdmin = () => {
                   type="text"
                   className="form-control"
                   name="name"
-                  value={formData.name}
+                  value={formData.name || ''}
                   onChange={handleChange}
                   placeholder="e.g. John Doe"
                 />
@@ -102,23 +100,10 @@ export const HeroAdmin = () => {
                   className="form-control"
                   name="intro"
                   rows="4"
-                  value={formData.intro}
+                  value={formData.intro || ''}
                   onChange={handleChange}
                   placeholder="A brief introduction about yourself..."
                 ></textarea>
-              </div>
-
-              {/* CV URL */}
-              <div className="mb-3">
-                <label className="form-label fw-bold small">CV / Resume URL</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="cvUrl"
-                  value={formData.cvUrl}
-                  onChange={handleChange}
-                  placeholder="https://example.com/my-cv.pdf"
-                />
               </div>
 
             </div>
@@ -139,7 +124,7 @@ export const HeroAdmin = () => {
                   type="text"
                   className="form-control"
                   name="profileImage"
-                  value={formData.profileImage}
+                  value={formData.profileImage || ''}
                   onChange={handleChange}
                   placeholder="https://..."
                 />
